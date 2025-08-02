@@ -1,0 +1,294 @@
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  KpiBar,
+  PaymentsFilter,
+  PaymentsTable,
+  PaymentDetailModal,
+  PayoutPanel,
+  ExportButtons
+} from './components';
+import { Loader } from '../../components/Loader';
+import {
+  getPayments,
+  getPaymentStats,
+  getPayoutData,
+  requestPayout,
+  refundPayment,
+  downloadInvoice,
+  exportPayments
+} from './payments.api';
+
+export const Payments = () => {
+  const queryClient = useQueryClient();
+  
+  // State management
+  const [filters, setFilters] = useState({
+    status: 'all',
+    method: 'all',
+    search: '',
+    dateRange: { startDate: null, endDate: null },
+    sortBy: 'date',
+    sortOrder: 'desc',
+    page: 1,
+    limit: 10
+  });
+  
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
+
+  // Custom toast hook
+  const useToast = () => {
+    const showToast = (message, type = 'success') => {
+      setToastMessage(message);
+      setToastType(type);
+      setTimeout(() => setToastMessage(''), 4000);
+    };
+    return { showToast };
+  };
+
+  const { showToast } = useToast();
+
+  // Data queries
+  const { data: paymentsData, isLoading: paymentsLoading, error: paymentsError } = useQuery({
+    queryKey: ['payments', filters],
+    queryFn: () => getPayments(filters),
+    keepPreviousData: true
+  });
+
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ['payment-stats'],
+    queryFn: () => getPaymentStats(),
+    staleTime: 5 * 60 * 1000 // 5 minutes
+  });
+
+  const { data: payoutData, isLoading: payoutLoading } = useQuery({
+    queryKey: ['payout-data'],
+    queryFn: () => getPayoutData(),
+    staleTime: 2 * 60 * 1000 // 2 minutes
+  });
+
+  // Mutations
+  const payoutMutation = useMutation({
+    mutationFn: requestPayout,
+    onSuccess: (data) => {
+      showToast(data.message, 'success');
+      queryClient.invalidateQueries(['payout-data']);
+    },
+    onError: (error) => {
+      showToast(error.message, 'error');
+    }
+  });
+
+  const refundMutation = useMutation({
+    mutationFn: ({ paymentId, reason }) => refundPayment(paymentId, reason),
+    onSuccess: (data) => {
+      showToast(data.message, 'success');
+      queryClient.invalidateQueries(['payments']);
+      queryClient.invalidateQueries(['payment-stats']);
+      setShowDetailModal(false);
+    },
+    onError: (error) => {
+      showToast(error.message, 'error');
+    }
+  });
+
+  const downloadMutation = useMutation({
+    mutationFn: downloadInvoice,
+    onSuccess: (data) => {
+      // Simulate download
+      const link = document.createElement('a');
+      link.href = data.downloadUrl;
+      link.download = data.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Factura descargada correctamente', 'success');
+    },
+    onError: (error) => {
+      showToast('Error al descargar la factura', 'error');
+    }
+  });
+
+  const exportMutation = useMutation({
+    mutationFn: ({ filters, format }) => exportPayments(filters, format),
+    onSuccess: (data) => {
+      // Simulate download
+      const link = document.createElement('a');
+      link.href = data.downloadUrl;
+      link.download = data.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`Archivo ${data.filename} descargado correctamente`, 'success');
+    },
+    onError: (error) => {
+      showToast('Error al exportar los datos', 'error');
+    }
+  });
+
+  // Event handlers
+  const handleFiltersChange = (newFilters) => {
+    setFilters({ ...newFilters, page: 1 }); // Reset page when filters change
+  };
+
+  const handleSort = (field, order) => {
+    setFilters(prev => ({ ...prev, sortBy: field, sortOrder: order, page: 1 }));
+  };
+
+  const handleViewDetail = (payment) => {
+    setSelectedPayment(payment);
+    setShowDetailModal(true);
+  };
+
+  const handleDownloadInvoice = (payment) => {
+    downloadMutation.mutate(payment.id);
+  };
+
+  const handleRefund = (payment) => {
+    const reason = prompt('Motivo del reembolso (opcional):');
+    if (reason !== null) { // User didn't cancel
+      refundMutation.mutate({ paymentId: payment.id, reason });
+    }
+  };
+
+  const handleRequestPayout = () => {
+    payoutMutation.mutate();
+  };
+
+  const handleExportCSV = (filters) => {
+    exportMutation.mutate({ filters, format: 'csv' });
+  };
+
+  const handleExportPDF = (filters) => {
+    exportMutation.mutate({ filters, format: 'pdf' });
+  };
+
+  // Loading state
+  if (statsLoading && payoutLoading && paymentsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader />
+      </div>
+    );
+  }
+
+  // Error state
+  if (paymentsError) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-deep">Pagos</h1>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-800">Error al cargar los datos de pagos</p>
+          <button 
+            onClick={() => queryClient.invalidateQueries(['payments'])}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-deep">Pagos</h1>
+          <p className="text-gray-600 mt-1">Gestión de pagos, ingresos y transferencias</p>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <KpiBar stats={statsData} loading={statsLoading} />
+
+      {/* Filters */}
+      <PaymentsFilter 
+        filters={filters} 
+        onFiltersChange={handleFiltersChange} 
+      />
+
+      {/* Payments Table */}
+      <PaymentsTable
+        payments={paymentsData?.payments}
+        loading={paymentsLoading}
+        onViewDetail={handleViewDetail}
+        onDownloadInvoice={handleDownloadInvoice}
+        onRefund={handleRefund}
+        sortBy={filters.sortBy}
+        sortOrder={filters.sortOrder}
+        onSort={handleSort}
+      />
+
+      {/* Pagination */}
+      {paymentsData && paymentsData.totalPages > 1 && (
+        <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3">
+          <div className="text-sm text-gray-700">
+            Mostrando {((filters.page - 1) * filters.limit) + 1} a {Math.min(filters.page * filters.limit, paymentsData.total)} de {paymentsData.total} resultados
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+              disabled={filters.page <= 1}
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Anterior
+            </button>
+            <span className="px-3 py-1 text-sm">
+              Página {filters.page} de {paymentsData.totalPages}
+            </span>
+            <button
+              onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+              disabled={filters.page >= paymentsData.totalPages}
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Export Buttons */}
+      <ExportButtons
+        onExportCSV={handleExportCSV}
+        onExportPDF={handleExportPDF}
+        filters={filters}
+        totalRecords={paymentsData?.total || 0}
+        disabled={exportMutation.isLoading}
+      />
+
+      {/* Payout Panel */}
+      <PayoutPanel
+        payoutData={payoutData}
+        loading={payoutLoading}
+        onRequestPayout={handleRequestPayout}
+      />
+
+      {/* Payment Detail Modal */}
+      <PaymentDetailModal
+        payment={selectedPayment}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        onDownloadInvoice={handleDownloadInvoice}
+        onRefund={handleRefund}
+      />
+
+      {/* Toast Notifications */}
+      {toastMessage && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg animate-slide-in ${
+          toastType === 'success' ? 'bg-green-500 text-white' :
+          toastType === 'error' ? 'bg-red-500 text-white' :
+          'bg-blue-500 text-white'
+        }`}>
+          {toastMessage}
+        </div>
+      )}
+    </div>
+  );
+};
