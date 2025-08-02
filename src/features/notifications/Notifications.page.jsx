@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import {
   CounterKpis,
@@ -35,33 +35,30 @@ export const Notifications = () => {
   });
 
   // Queries
-  const { data: notificationsData, isLoading: notificationsLoading, error: notificationsError } = useQuery(
-    ['notifications', filters],
-    () => getNotifications(filters),
-    {
-      keepPreviousData: true,
-      staleTime: 30000, // 30 seconds
-    }
-  );
+  const { data: notificationsData, isLoading: notificationsLoading, error: notificationsError } = useQuery({
+    queryKey: ['notifications', filters],
+    queryFn: () => getNotifications(filters),
+    keepPreviousData: true,
+    staleTime: 30000, // 30 seconds
+  });
 
-  const { data: stats, isLoading: statsLoading } = useQuery(
-    'notificationStats',
-    getNotificationStats,
-    {
-      refetchInterval: 60000, // Refetch every minute
-    }
-  );
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['notificationStats'],
+    queryFn: getNotificationStats,
+    refetchInterval: 60000, // Refetch every minute
+  });
 
-  const { data: settings, isLoading: settingsLoading } = useQuery(
-    'notificationSettings',
-    getNotificationSettings
-  );
+  const { data: settings, isLoading: settingsLoading } = useQuery({
+    queryKey: ['notificationSettings'],
+    queryFn: getNotificationSettings
+  });
 
   // Mutations
-  const markAsReadMutation = useMutation(markAsRead, {
+  const markAsReadMutation = useMutation({
+    mutationFn: markAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries('notifications');
-      queryClient.invalidateQueries('notificationStats');
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notificationStats'] });
       toast.success('Notificación marcada como leída');
     },
     onError: () => {
@@ -69,10 +66,11 @@ export const Notifications = () => {
     }
   });
 
-  const markAllAsReadMutation = useMutation(markAllAsRead, {
+  const markAllAsReadMutation = useMutation({
+    mutationFn: markAllAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries('notifications');
-      queryClient.invalidateQueries('notificationStats');
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notificationStats'] });
       toast.success('Todas las notificaciones marcadas como leídas');
     },
     onError: () => {
@@ -80,10 +78,11 @@ export const Notifications = () => {
     }
   });
 
-  const deleteNotificationMutation = useMutation(deleteNotification, {
+  const deleteNotificationMutation = useMutation({
+    mutationFn: deleteNotification,
     onSuccess: () => {
-      queryClient.invalidateQueries('notifications');
-      queryClient.invalidateQueries('notificationStats');
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notificationStats'] });
       toast.success('Notificación eliminada');
     },
     onError: () => {
@@ -91,10 +90,11 @@ export const Notifications = () => {
     }
   });
 
-  const deleteReadMutation = useMutation(deleteReadNotifications, {
+  const deleteReadMutation = useMutation({
+    mutationFn: deleteReadNotifications,
     onSuccess: (data) => {
-      queryClient.invalidateQueries('notifications');
-      queryClient.invalidateQueries('notificationStats');
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notificationStats'] });
       toast.success(`${data.deletedCount} notificaciones eliminadas`);
     },
     onError: () => {
@@ -102,10 +102,11 @@ export const Notifications = () => {
     }
   });
 
-  const sendTestMutation = useMutation(sendTestNotification, {
+  const sendTestMutation = useMutation({
+    mutationFn: sendTestNotification,
     onSuccess: () => {
-      queryClient.invalidateQueries('notifications');
-      queryClient.invalidateQueries('notificationStats');
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notificationStats'] });
       toast.success('Notificación de prueba enviada');
     },
     onError: () => {
@@ -113,9 +114,10 @@ export const Notifications = () => {
     }
   });
 
-  const updateSettingsMutation = useMutation(updateNotificationSettings, {
+  const updateSettingsMutation = useMutation({
+    mutationFn: updateNotificationSettings,
     onSuccess: () => {
-      queryClient.invalidateQueries('notificationSettings');
+      queryClient.invalidateQueries({ queryKey: ['notificationSettings'] });
       toast.success('Configuración actualizada');
     },
     onError: () => {

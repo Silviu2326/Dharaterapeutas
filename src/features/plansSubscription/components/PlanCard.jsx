@@ -1,192 +1,235 @@
-import React from 'react';
-import { Check, X, Star, Zap } from 'lucide-react';
+import React, { useState } from 'react';
+import { Eye, Edit, Trash2, Users, Calendar, Clock, Target, MoreVertical, Play } from 'lucide-react';
+import { Button } from '../../../components/Button';
 
-const formatPrice = (amount, currency = 'EUR') => {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: currency
-  }).format(amount);
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'active':
+      return 'bg-green-100 text-green-800';
+    case 'draft':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'archived':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
 };
 
-const getPlanIcon = (planType) => {
-  switch (planType) {
-    case 'premium':
-    case 'pro':
-      return Star;
-    case 'unlimited':
-    case 'enterprise':
-      return Zap;
+const getStatusLabel = (status) => {
+  switch (status) {
+    case 'active':
+      return 'Activo';
+    case 'draft':
+      return 'Borrador';
+    case 'archived':
+      return 'Archivado';
     default:
-      return null;
+      return status;
   }
+};
+
+const getTypeColor = (type) => {
+  const colors = {
+    ansiedad: 'bg-blue-100 text-blue-800',
+    depresion: 'bg-purple-100 text-purple-800',
+    pareja: 'bg-pink-100 text-pink-800',
+    trauma: 'bg-red-100 text-red-800',
+    adicciones: 'bg-orange-100 text-orange-800',
+    infantil: 'bg-green-100 text-green-800',
+    familiar: 'bg-indigo-100 text-indigo-800'
+  };
+  return colors[type] || 'bg-gray-100 text-gray-800';
+};
+
+const getTypeLabel = (type) => {
+  const types = {
+    ansiedad: 'Ansiedad',
+    depresion: 'Depresión',
+    pareja: 'Terapia de Pareja',
+    trauma: 'Trauma',
+    adicciones: 'Adicciones',
+    infantil: 'Terapia Infantil',
+    familiar: 'Terapia Familiar'
+  };
+  return types[type] || type;
 };
 
 export const PlanCard = ({ 
   plan,
-  isCurrentPlan = false,
-  isPopular = false,
-  onSelect,
-  disabled = false,
+  onView,
+  onEdit,
+  onDelete,
+  onAssign,
+  onActivate,
   className = '' 
 }) => {
-  const PlanIcon = getPlanIcon(plan.type);
-  const isBasicPlan = plan.type === 'basic' || plan.price === 0;
+  const [showMenu, setShowMenu] = useState(false);
   
-  const handleSelect = () => {
-    if (!disabled && onSelect && !isCurrentPlan) {
-      onSelect(plan);
-    }
-  };
-
   return (
     <div className={`
-      relative bg-white rounded-lg border-2 transition-all duration-200 hover:shadow-lg
-      ${isCurrentPlan ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}
-      ${isPopular ? 'ring-2 ring-purple-500 ring-offset-2' : ''}
-      ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+      relative bg-white rounded-lg border border-gray-200 transition-all duration-200 hover:shadow-lg hover:border-gray-300
       ${className}
     `}>
-      {/* Popular badge */}
-      {isPopular && (
-        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <span className="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-            Más popular
-          </span>
-        </div>
-      )}
-
-      {/* Current plan badge */}
-      {isCurrentPlan && (
-        <div className="absolute -top-3 right-4">
-          <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-            Plan actual
-          </span>
-        </div>
-      )}
-
-      <div className="p-6">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center space-x-2 mb-2">
-            {PlanIcon && (
-              <PlanIcon className={`h-6 w-6 ${
-                isCurrentPlan ? 'text-blue-600' : 
-                isPopular ? 'text-purple-600' : 'text-gray-600'
-              }`} aria-hidden="true" />
-            )}
-            <h3 className="text-xl font-bold text-gray-900">
-              {plan.name}
-            </h3>
-          </div>
-          
-          <p className="text-gray-600 text-sm mb-4">
-            {plan.description}
-          </p>
-
-          {/* Pricing */}
-          <div className="mb-4">
-            {plan.price === 0 ? (
-              <div className="text-3xl font-bold text-gray-900">
-                Gratis
-              </div>
-            ) : (
-              <div className="flex items-baseline justify-center space-x-1">
-                <span className="text-3xl font-bold text-gray-900">
-                  {formatPrice(plan.price)}
-                </span>
-                <span className="text-gray-600">
-                  /{plan.interval === 'month' ? 'mes' : 'año'}
-                </span>
-              </div>
-            )}
-            
-            {plan.originalPrice && plan.originalPrice > plan.price && (
-              <div className="text-sm text-gray-500 line-through">
-                {formatPrice(plan.originalPrice)}
-              </div>
-            )}
-            
-            {plan.savings && (
-              <div className="text-sm text-green-600 font-medium">
-                Ahorra {plan.savings}%
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="space-y-3 mb-6">
-          {plan.features.map((feature, index) => (
-            <div key={index} className="flex items-start space-x-3">
-              {feature.included ? (
-                <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" aria-hidden="true" />
-              ) : (
-                <X className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
-              )}
-              <span className={`text-sm ${
-                feature.included ? 'text-gray-900' : 'text-gray-500'
-              }`}>
-                {feature.name}
-                {feature.limit && (
-                  <span className="text-gray-500 ml-1">
-                    ({feature.limit})
-                  </span>
-                )}
+      {/* Header */}
+      <div className="p-6 pb-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 truncate">{plan.name}</h3>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(plan.status)}`}>
+                {getStatusLabel(plan.status)}
               </span>
             </div>
-          ))}
+            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(plan.type)}`}>
+              {getTypeLabel(plan.type)}
+            </span>
+          </div>
+          
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+            
+            {showMenu && (
+              <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[150px]">
+                <button
+                  onClick={() => {
+                    onView();
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  Ver detalles
+                </button>
+                <button
+                  onClick={() => {
+                    onAssign();
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Users className="w-4 h-4" />
+                  Asignar clientes
+                </button>
+                {plan.status === 'draft' && (
+                  <button
+                    onClick={() => {
+                      onActivate();
+                      setShowMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-green-700 hover:bg-green-50 flex items-center gap-2"
+                  >
+                    <Play className="w-4 h-4" />
+                    Activar plan
+                  </button>
+                )}
+                <hr className="my-1" />
+                <button
+                  onClick={() => {
+                    onDelete();
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-red-700 hover:bg-red-50 flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar
+                </button>
+              </div>
+            )}
+          </div>
         </div>
+        
+        <p className="text-gray-600 text-sm line-clamp-2 mb-4">{plan.description}</p>
+      </div>
 
-        {/* Limits/Usage */}
-        {plan.limits && (
-          <div className="bg-gray-50 rounded-lg p-3 mb-6">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">
-              Límites incluidos:
-            </h4>
-            <div className="space-y-1">
-              {Object.entries(plan.limits).map(([key, value]) => (
-                <div key={key} className="flex justify-between text-sm">
-                  <span className="text-gray-600 capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                  </span>
-                  <span className="font-medium text-gray-900">
-                    {value === -1 ? 'Ilimitado' : value}
-                  </span>
-                </div>
-              ))}
+      {/* Stats */}
+      <div className="px-6 pb-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-blue-100 rounded">
+              <Clock className="w-3 h-3 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Duración</p>
+              <p className="text-sm font-medium">{plan.duration} semanas</p>
             </div>
           </div>
-        )}
-
-        {/* Action button */}
-        <button
-          onClick={handleSelect}
-          disabled={disabled || isCurrentPlan}
-          className={`
-            w-full py-3 px-4 rounded-lg font-medium transition-colors duration-200
-            focus:outline-none focus:ring-2 focus:ring-offset-2
-            ${
-              isCurrentPlan
-                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                : isPopular
-                ? 'bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-500'
-                : 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500'
-            }
-            ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-          aria-pressed={isCurrentPlan}
-          aria-label={`Seleccionar plan ${plan.name}`}
-        >
-          {isCurrentPlan ? 'Plan Actual' : 'Seleccionar Plan'}
-        </button>
-
-        {/* Trial info */}
-        {plan.trialDays && !isCurrentPlan && (
-          <p className="text-center text-sm text-gray-600 mt-3">
-            Incluye {plan.trialDays} días de prueba gratis
-          </p>
-        )}
+          
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-green-100 rounded">
+              <Calendar className="w-3 h-3 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Frecuencia</p>
+              <p className="text-sm font-medium">{plan.sessionsPerWeek}/semana</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-purple-100 rounded">
+              <Target className="w-3 h-3 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Sesiones</p>
+              <p className="text-sm font-medium">{plan.totalSessions} total</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-yellow-100 rounded">
+              <Users className="w-3 h-3 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Clientes</p>
+              <p className="text-sm font-medium">{plan.assignedClients}</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Objectives Preview */}
+      <div className="px-6 pb-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Objetivos principales:</h4>
+        <div className="space-y-1">
+          {plan.objectives.slice(0, 2).map((objective, index) => (
+            <div key={index} className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+              <p className="text-xs text-gray-600 line-clamp-1">{objective}</p>
+            </div>
+          ))}
+          {plan.objectives.length > 2 && (
+            <p className="text-xs text-gray-500 ml-3.5">+{plan.objectives.length - 2} más...</p>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-6 py-4 bg-gray-50 rounded-b-lg">
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-gray-500">
+            Creado: {new Date(plan.createdDate).toLocaleDateString('es-ES')}
+          </div>
+          <Button
+            size="sm"
+            onClick={onView}
+            className="text-xs"
+          >
+            Ver detalles
+          </Button>
+        </div>
+      </div>
+      
+      {/* Click overlay to close menu */}
+      {showMenu && (
+        <div 
+          className="fixed inset-0 z-5" 
+          onClick={() => setShowMenu(false)}
+        />
+      )}
     </div>
   );
 };

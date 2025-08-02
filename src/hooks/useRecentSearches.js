@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export const useRecentSearches = (key = 'recentSearches', maxItems = 10) => {
   const [recentSearches, setRecentSearches] = useState([]);
@@ -27,7 +27,7 @@ export const useRecentSearches = (key = 'recentSearches', maxItems = 10) => {
   };
 
   // Agregar una nueva búsqueda
-  const addSearch = (searchTerm) => {
+  const addSearch = useCallback((searchTerm) => {
     if (!searchTerm || typeof searchTerm !== 'string') {
       return;
     }
@@ -51,10 +51,10 @@ export const useRecentSearches = (key = 'recentSearches', maxItems = 10) => {
       
       return updated;
     });
-  };
+  }, [key, maxItems]);
 
   // Remover una búsqueda específica
-  const removeSearch = (searchTerm) => {
+  const removeSearch = useCallback((searchTerm) => {
     setRecentSearches(prev => {
       const updated = prev.filter(term => 
         term.toLowerCase() !== searchTerm.toLowerCase()
@@ -62,20 +62,20 @@ export const useRecentSearches = (key = 'recentSearches', maxItems = 10) => {
       saveToStorage(updated);
       return updated;
     });
-  };
+  }, [key]);
 
   // Limpiar todas las búsquedas
-  const clearSearches = () => {
+  const clearSearches = useCallback(() => {
     setRecentSearches([]);
     try {
       localStorage.removeItem(key);
     } catch (error) {
       console.error('Error clearing recent searches:', error);
     }
-  };
+  }, [key]);
 
   // Obtener sugerencias basadas en un término de búsqueda
-  const getSuggestions = (searchTerm, limit = 5) => {
+  const getSuggestions = useCallback((searchTerm, limit = 5) => {
     if (!searchTerm || typeof searchTerm !== 'string') {
       return recentSearches.slice(0, limit);
     }
@@ -88,15 +88,15 @@ export const useRecentSearches = (key = 'recentSearches', maxItems = 10) => {
     return recentSearches
       .filter(term => term.toLowerCase().includes(trimmedTerm))
       .slice(0, limit);
-  };
+  }, [recentSearches]);
 
-  return {
+  return useMemo(() => ({
     recentSearches,
-    addSearch,
+    addRecentSearch: addSearch,
     removeSearch,
     clearSearches,
     getSuggestions
-  };
+  }), [recentSearches, addSearch, removeSearch, clearSearches, getSuggestions]);
 };
 
 export default useRecentSearches;

@@ -369,7 +369,7 @@ const VideoPreview = ({ url, filename }) => {
 };
 
 // Componente para archivos no soportados
-const UnsupportedPreview = ({ document }) => {
+const UnsupportedPreview = ({ document: documentData }) => {
   return (
     <div className="w-full h-full flex items-center justify-center bg-gray-50">
       <div className="text-center p-8">
@@ -379,14 +379,14 @@ const UnsupportedPreview = ({ document }) => {
           </svg>
         </div>
         
-        <h3 className="text-lg font-medium text-gray-900 mb-2">{document.title}</h3>
-        <p className="text-sm text-gray-500 mb-4">{document.filename}</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{documentData.title}</h3>
+        <p className="text-sm text-gray-500 mb-4">{documentData.filename}</p>
         <p className="text-sm text-gray-600 mb-6">
           Vista previa no disponible para este tipo de archivo
         </p>
         
         <button
-          onClick={() => window.open(document.url, '_blank')}
+          onClick={() => window.open(documentData.url, '_blank')}
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <ArrowDownTrayIcon className="w-4 h-4" />
@@ -400,7 +400,7 @@ const UnsupportedPreview = ({ document }) => {
 export const PreviewModal = ({ 
   isOpen, 
   onClose, 
-  document, 
+  document: selectedDocument, 
   documents = [], 
   onDownload, 
   onResend, 
@@ -409,11 +409,11 @@ export const PreviewModal = ({
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    if (document && documents.length > 0) {
-      const index = documents.findIndex(doc => doc.id === document.id);
+    if (selectedDocument && documents.length > 0) {
+      const index = documents.findIndex(doc => doc.id === selectedDocument.id);
       setCurrentIndex(index >= 0 ? index : 0);
     }
-  }, [document, documents]);
+  }, [selectedDocument, documents]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -440,9 +440,9 @@ export const PreviewModal = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, currentIndex, documents.length, onClose]);
 
-  if (!isOpen || !document) return null;
+  if (!isOpen || !selectedDocument) return null;
 
-  const currentDocument = documents[currentIndex] || document;
+  const currentDocument = documents[currentIndex] || selectedDocument;
   const fileType = fileTypeUtils.getFileType(currentDocument.filename);
   const canNavigate = documents.length > 1;
 

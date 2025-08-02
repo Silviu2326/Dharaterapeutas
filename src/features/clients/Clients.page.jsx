@@ -313,11 +313,15 @@ export const Clients = () => {
       
       {/* Filtros */}
       <ClientsFilter
-        filters={filters}
-        onFilterChange={handleFilterChange}
+        onSearchChange={(search) => handleFilterChange({ search })}
+        onTagsChange={(tags) => handleFilterChange({ tags })}
+        onStatusChange={(status) => handleFilterChange({ status })}
+        onSortChange={(sort) => handleFilterChange({ sort })}
         onClearFilters={handleClearFilters}
-        clientsCount={filteredClients.length}
-        totalCount={clients.length}
+        searchValue={filters.search}
+        selectedTags={filters.tags}
+        selectedStatus={filters.status}
+        selectedSort={filters.sort}
       />
       
       {/* Tabla de clientes */}

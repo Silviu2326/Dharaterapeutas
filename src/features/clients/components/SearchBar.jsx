@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useRecentSearches } from '../../../hooks/useRecentSearches';
 
@@ -6,7 +6,7 @@ export const SearchBar = ({
   value = '', 
   onChange, 
   placeholder = 'Buscar clientes...', 
-  suggestions = [],
+  suggestions,
   isLoading = false 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,16 +15,18 @@ export const SearchBar = ({
   const dropdownRef = useRef(null);
   const { recentSearches, addRecentSearch } = useRecentSearches('clients-search');
 
+  const memoizedSuggestions = useMemo(() => suggestions || [], [suggestions]);
+
   useEffect(() => {
-    if (value.length > 0) {
-      const filtered = suggestions.filter(suggestion =>
+    if (value.length > 0 && memoizedSuggestions.length > 0) {
+      const filtered = memoizedSuggestions.filter(suggestion =>
         suggestion.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredSuggestions(filtered);
     } else {
       setFilteredSuggestions([]);
     }
-  }, [value, suggestions]);
+  }, [value, memoizedSuggestions]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -37,26 +39,26 @@ export const SearchBar = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const newValue = e.target.value;
     onChange(newValue);
     setIsOpen(newValue.length > 0 || recentSearches.length > 0);
-  };
+  }, [onChange, recentSearches]);
 
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionClick = useCallback((suggestion) => {
     onChange(suggestion);
     addRecentSearch(suggestion);
     setIsOpen(false);
     inputRef.current?.blur();
-  };
+  }, [onChange, addRecentSearch]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     onChange('');
     setIsOpen(false);
     inputRef.current?.focus();
-  };
+  }, [onChange]);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && value.trim()) {
       addRecentSearch(value.trim());
       setIsOpen(false);
@@ -65,7 +67,7 @@ export const SearchBar = ({
       setIsOpen(false);
       inputRef.current?.blur();
     }
-  };
+  }, [value, addRecentSearch]);
 
   const showSuggestions = isOpen && (filteredSuggestions.length > 0 || (value.length === 0 && recentSearches.length > 0));
 
