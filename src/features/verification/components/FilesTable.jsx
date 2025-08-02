@@ -5,6 +5,8 @@ import { FileText } from 'lucide-react';
 export const FilesTable = ({ 
   files = [], 
   onDownload,
+  onDelete,
+  canDelete = false,
   className = '' 
 }) => {
   if (files.length === 0) {
@@ -14,9 +16,18 @@ export const FilesTable = ({
         <h3 className="text-lg font-medium text-gray-900 mb-2">
           No hay archivos enviados
         </h3>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mb-4">
           Los archivos que subas aparecerán aquí una vez enviados para verificación.
         </p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left max-w-md mx-auto">
+          <h4 className="text-sm font-medium text-blue-900 mb-2">Límites de archivos:</h4>
+          <ul className="text-xs text-blue-800 space-y-1">
+            <li>• Tamaño máximo: 10 MB por archivo</li>
+            <li>• Formatos admitidos: PDF, JPG, PNG</li>
+            <li>• Resolución mínima: 300 DPI para escaneos</li>
+            <li>• Documentos requeridos: Diploma + Seguro RC</li>
+          </ul>
+        </div>
       </div>
     );
   }
@@ -70,6 +81,8 @@ export const FilesTable = ({
               key={file.id || index}
               file={file}
               onDownload={onDownload}
+              onDelete={onDelete}
+              canDelete={canDelete}
             />
           ))}
         </tbody>

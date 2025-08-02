@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Calendar, Users, Target, Brain, BookOpen, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Calendar, Users, Target, Brain, BookOpen, Clock, Check } from 'lucide-react';
 import { Button } from '../../../components/Button';
 
 const getStatusColor = (status) => {
@@ -42,12 +42,35 @@ const getTypeLabel = (type) => {
 };
 
 export const PlanDetailsModal = ({ isOpen, onClose, plan, clients }) => {
+  const [completedObjectives, setCompletedObjectives] = useState(new Set());
+  const [completedHomework, setCompletedHomework] = useState(new Set());
+
   if (!isOpen || !plan) return null;
 
   // Obtener clientes asignados a este plan
   const assignedClients = clients.filter(client => 
     client.assignedPlans.includes(plan.id)
   );
+
+  const toggleObjectiveComplete = (index) => {
+    const newCompleted = new Set(completedObjectives);
+    if (newCompleted.has(index)) {
+      newCompleted.delete(index);
+    } else {
+      newCompleted.add(index);
+    }
+    setCompletedObjectives(newCompleted);
+  };
+
+  const toggleHomeworkComplete = (index) => {
+    const newCompleted = new Set(completedHomework);
+    if (newCompleted.has(index)) {
+      newCompleted.delete(index);
+    } else {
+      newCompleted.add(index);
+    }
+    setCompletedHomework(newCompleted);
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -96,16 +119,33 @@ export const PlanDetailsModal = ({ isOpen, onClose, plan, clients }) => {
                 <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
                   <Target className="w-5 h-5 text-blue-600" />
                   Objetivos del Plan
+                  <span className="text-sm text-gray-500 ml-2">
+                    ({completedObjectives.size}/{plan.objectives.length} completados)
+                  </span>
                 </h3>
                 <div className="space-y-2">
-                  {plan.objectives.map((objective, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                      <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
-                        {index + 1}
+                  {plan.objectives.map((objective, index) => {
+                    const isCompleted = completedObjectives.has(index);
+                    return (
+                      <div key={index} className={`flex items-start gap-3 p-3 rounded-lg transition-all ${
+                        isCompleted ? 'bg-green-50 border border-green-200' : 'bg-blue-50'
+                      }`}>
+                        <button
+                          onClick={() => toggleObjectiveComplete(index)}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium mt-0.5 transition-colors ${
+                            isCompleted 
+                              ? 'bg-green-600 text-white hover:bg-green-700' 
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                        >
+                          {isCompleted ? <Check className="w-3 h-3" /> : index + 1}
+                        </button>
+                        <p className={`flex-1 transition-all ${
+                          isCompleted ? 'text-green-900 line-through' : 'text-gray-900'
+                        }`}>{objective}</p>
                       </div>
-                      <p className="text-gray-900 flex-1">{objective}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -130,14 +170,30 @@ export const PlanDetailsModal = ({ isOpen, onClose, plan, clients }) => {
                   <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-green-600" />
                     Tareas para Casa
+                    <span className="text-sm text-gray-500 ml-2">
+                      ({completedHomework.size}/{plan.homework.length} completadas)
+                    </span>
                   </h3>
                   <div className="space-y-2">
-                    {plan.homework.map((hw, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                        <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                        <p className="text-gray-900">{hw}</p>
-                      </div>
-                    ))}
+                    {plan.homework.map((hw, index) => {
+                      const isCompleted = completedHomework.has(index);
+                      return (
+                        <div key={index} className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                          isCompleted ? 'bg-green-100 border border-green-200' : 'bg-green-50 hover:bg-green-100'
+                        }`} onClick={() => toggleHomeworkComplete(index)}>
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                            isCompleted 
+                              ? 'bg-green-600 border-green-600 text-white' 
+                              : 'border-green-300 hover:border-green-500'
+                          }`}>
+                            {isCompleted && <Check className="w-3 h-3" />}
+                          </div>
+                          <p className={`flex-1 transition-all ${
+                            isCompleted ? 'text-green-900 line-through' : 'text-gray-900'
+                          }`}>{hw}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

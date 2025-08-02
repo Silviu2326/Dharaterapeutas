@@ -5,6 +5,8 @@ import { BookingsTable } from './components/BookingsTable';
 import { BookingDetailDrawer } from './components/BookingDetailDrawer';
 import { RescheduleModal } from './components/RescheduleModal';
 import { CancelModal } from './components/CancelModal';
+import { NewBookingModal } from './components/NewBookingModal';
+import { NotificationSystem } from './components/NotificationSystem';
 import { StatusBadge } from './components/StatusBadge';
 import { 
   Calendar,
@@ -16,11 +18,28 @@ import {
   Plus
 } from 'lucide-react';
 
-// Mock data for demonstration
+// Mock data for demonstration - Updated with current dates
+const getTodayDate = () => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+};
+
+const getTomorrowDate = () => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().split('T')[0];
+};
+
+const getNextWeekDate = () => {
+  const nextWeek = new Date();
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  return nextWeek.toISOString().split('T')[0];
+};
+
 const mockBookings = [
   {
     id: 'BK001',
-    date: '2024-01-15',
+    date: getTomorrowDate(),
     startTime: '09:00',
     endTime: '10:00',
     clientId: 'CL001',
@@ -43,9 +62,9 @@ const mockBookings = [
   },
   {
     id: 'BK002',
-    date: '2024-01-15',
-    startTime: '11:00',
-    endTime: '12:00',
+    date: getTodayDate(),
+    startTime: '14:00',
+    endTime: '15:30',
     clientId: 'CL002',
     clientName: 'Carlos Rodríguez',
     clientEmail: 'carlos.rodriguez@email.com',
@@ -62,7 +81,7 @@ const mockBookings = [
   },
   {
     id: 'BK003',
-    date: '2024-01-14',
+    date: getNextWeekDate(),
     startTime: '16:00',
     endTime: '17:00',
     clientId: 'CL003',
@@ -83,7 +102,7 @@ const mockBookings = [
   },
   {
     id: 'BK004',
-    date: '2024-01-13',
+    date: getTodayDate(),
     startTime: '10:00',
     endTime: '11:00',
     clientId: 'CL004',
@@ -92,7 +111,7 @@ const mockBookings = [
     clientPhone: '+34 666 901 234',
     clientAvatar: null,
     therapyType: 'Terapia Individual',
-    status: 'cancelled',
+    status: 'completed',
     amount: 80,
     currency: 'EUR',
     paymentStatus: 'refunded',
@@ -102,7 +121,7 @@ const mockBookings = [
   },
   {
     id: 'BK005',
-    date: '2024-01-12',
+    date: getTomorrowDate(),
     startTime: '15:00',
     endTime: '16:00',
     clientId: 'CL005',
@@ -111,7 +130,7 @@ const mockBookings = [
     clientPhone: '+34 666 567 890',
     clientAvatar: null,
     therapyType: 'Terapia Individual',
-    status: 'no_show',
+    status: 'upcoming',
     amount: 80,
     currency: 'EUR',
     paymentStatus: 'paid',
@@ -122,18 +141,32 @@ const mockBookings = [
   }
 ];
 
-// Mock available slots for rescheduling
-const mockAvailableSlots = {
-  '2024-01-16': ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'],
-  '2024-01-17': ['09:00', '10:30', '12:00', '14:30', '16:00'],
-  '2024-01-18': ['08:30', '10:00', '11:30', '15:00', '16:30'],
-  '2024-01-19': ['09:00', '10:00', '14:00', '15:00'],
-  '2024-01-22': ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'],
-  '2024-01-23': ['08:30', '10:00', '11:30', '14:30', '16:00'],
-  '2024-01-24': ['09:00', '10:30', '12:00', '15:00', '16:30'],
-  '2024-01-25': ['09:00', '11:00', '14:00', '15:00', '16:00'],
-  '2024-01-26': ['08:30', '10:00', '11:30', '14:30', '15:30']
+// Mock available slots for scheduling - Dynamic dates
+const generateAvailableSlots = () => {
+  const slots = {};
+  const today = new Date();
+  
+  // Generar slots para los próximos 30 días
+  for (let i = 0; i < 30; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const dateStr = date.toISOString().split('T')[0];
+    
+    // Horarios disponibles (simulados)
+    const availableTimes = [
+      '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+      '12:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
+    ];
+    
+    // Remover algunos horarios aleatoriamente para simular ocupación
+    const randomSlots = availableTimes.filter(() => Math.random() > 0.3);
+    slots[dateStr] = randomSlots;
+  }
+  
+  return slots;
 };
+
+const mockAvailableSlots = generateAvailableSlots();
 
 export const Bookings = () => {
   const [bookings, setBookings] = useState(mockBookings);
@@ -144,8 +177,11 @@ export const Bookings = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [bookingToReschedule, setBookingToReschedule] = useState(null);
   const [bookingToCancel, setBookingToCancel] = useState(null);
+  const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState('desktop'); // desktop | mobile
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -169,6 +205,48 @@ export const Bookings = () => {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Auto-update booking statuses based on current date/time
+  useEffect(() => {
+    const updateBookingStatuses = () => {
+      const now = new Date();
+      const currentDate = now.toISOString().split('T')[0];
+      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+      setBookings(prev => prev.map(booking => {
+        const bookingDate = booking.date;
+        const bookingEndTime = booking.endTime;
+        
+        // Si la cita ya está completada, cancelada o marcada como no asistió, no cambiar
+        if (['completed', 'cancelled', 'no_show'].includes(booking.status)) {
+          return booking;
+        }
+
+        // Si la fecha de la cita es anterior a hoy, marcar como no asistió (si no está completada)
+        if (bookingDate < currentDate) {
+          return { ...booking, status: 'no_show' };
+        }
+
+        // Si es hoy y la hora ya pasó, marcar como no asistió
+        if (bookingDate === currentDate && bookingEndTime < currentTime) {
+          return { ...booking, status: 'no_show' };
+        }
+
+        // Si es hoy o futuro, marcar como próxima
+        if (bookingDate >= currentDate) {
+          return { ...booking, status: 'upcoming' };
+        }
+
+        return booking;
+      }));
+    };
+
+    // Ejecutar al cargar y cada 5 minutos
+    updateBookingStatuses();
+    const interval = setInterval(updateBookingStatuses, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Apply filters and sorting
@@ -218,7 +296,15 @@ export const Bookings = () => {
     });
 
     setFilteredBookings(filtered);
+    // Reset to first page when filters change
+    setCurrentPage(1);
   }, [bookings, filters, sortConfig]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedBookings = filteredBookings.slice(startIndex, endIndex);
 
   // Calculate statistics
   const stats = {
@@ -249,8 +335,23 @@ export const Bookings = () => {
   };
 
   const handleStartChat = (booking) => {
-    // Implement chat functionality
-    console.log('Starting chat with:', booking.clientName);
+    // Implementar funcionalidad de chat
+    const message = `Hola ${booking.clientName}, te escribo desde la clínica para confirmar tu cita del ${new Date(booking.date).toLocaleDateString('es-ES')} a las ${booking.startTime}. ¿Necesitas algún cambio o tienes alguna pregunta?`;
+    
+    // Simular apertura de chat o WhatsApp
+    if (booking.clientPhone) {
+      const phoneNumber = booking.clientPhone.replace(/\D/g, ''); // Remover caracteres no numéricos
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    } else {
+      // Fallback: copiar mensaje al portapapeles
+      navigator.clipboard.writeText(message).then(() => {
+        alert('Mensaje copiado al portapapeles');
+      }).catch(() => {
+        console.log('Mensaje para enviar:', message);
+        alert('No se pudo copiar el mensaje. Revisa la consola.');
+      });
+    }
   };
 
   const handleJoinMeet = (booking) => {
@@ -350,13 +451,78 @@ export const Bookings = () => {
   };
 
   const handleExport = () => {
-    // Implement export functionality
-    console.log('Exporting bookings data');
+    // Implementar funcionalidad de exportación
+    const csvData = [
+      ['ID', 'Fecha', 'Hora', 'Cliente', 'Email', 'Teléfono', 'Terapia', 'Estado', 'Precio', 'Ubicación', 'Notas'],
+      ...filteredBookings.map(booking => [
+        booking.id,
+        booking.date,
+        `${booking.startTime} - ${booking.endTime}`,
+        booking.clientName,
+        booking.clientEmail,
+        booking.clientPhone,
+        booking.therapyType,
+        booking.status,
+        `€${booking.amount}`,
+        booking.location,
+        booking.notes || ''
+      ])
+    ];
+    
+    const csvContent = csvData.map(row => 
+      row.map(field => `"${field}"`).join(',')
+    ).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `reservas_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log('Datos de reservas exportados exitosamente');
   };
 
   const handleNewBooking = () => {
-    // Implement new booking functionality
-    console.log('Creating new booking');
+    setIsNewBookingModalOpen(true);
+  };
+
+  const handleConfirmNewBooking = async (bookingData) => {
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate new booking ID
+      const newId = `BK${(bookings.length + 1).toString().padStart(3, '0')}`;
+      
+      const newBooking = {
+        ...bookingData,
+        id: newId,
+        createdAt: new Date().toISOString()
+      };
+      
+      setBookings(prev => [newBooking, ...prev]);
+      
+      // Send reminder if enabled
+      if (bookingData.reminderEnabled) {
+        console.log(`Recordatorio programado para ${bookingData.reminderTime} horas antes de la cita`);
+      }
+      
+      console.log('Nueva cita creada exitosamente');
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -367,7 +533,8 @@ export const Bookings = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Reservas</h1>
           <p className="text-gray-600 mt-1">Administra las citas y reservas de tus clientes</p>
         </div>
-        <div className="mt-4 sm:mt-0 flex space-x-3">
+        <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+          <NotificationSystem bookings={bookings} />
           <button
             onClick={handleExport}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -484,7 +651,7 @@ export const Bookings = () => {
       <Card>
         <div className="overflow-hidden">
           <BookingsTable
-            bookings={filteredBookings}
+            bookings={paginatedBookings}
             viewMode={viewMode}
             sortConfig={sortConfig}
             onSort={handleSort}
@@ -495,6 +662,48 @@ export const Bookings = () => {
             onJoinMeet={handleJoinMeet}
             isLoading={isLoading}
           />
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Mostrando {startIndex + 1} a {Math.min(endIndex, filteredBookings.length)} de {filteredBookings.length} resultados
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 border rounded-md text-sm font-medium ${
+                        page === currentPage
+                          ? 'border-blue-500 bg-blue-50 text-blue-600'
+                          : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -535,6 +744,15 @@ export const Bookings = () => {
           setBookingToCancel(null);
         }}
         onConfirm={handleConfirmCancel}
+        isLoading={isLoading}
+      />
+
+      {/* New Booking Modal */}
+      <NewBookingModal
+        isOpen={isNewBookingModalOpen}
+        onClose={() => setIsNewBookingModalOpen(false)}
+        onConfirm={handleConfirmNewBooking}
+        availableSlots={mockAvailableSlots}
         isLoading={isLoading}
       />
     </div>

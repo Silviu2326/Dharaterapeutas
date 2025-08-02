@@ -118,7 +118,10 @@ export const useConversations = () => {
               isRead: false
             },
             unreadCount: 2,
-            nextSession: '2024-01-16T10:00:00Z'
+            nextSession: '2024-01-16T10:00:00Z',
+            isFavorite: true,
+            isArchived: false,
+            isPriority: false
           },
           {
             id: 'conv-2',
@@ -137,7 +140,10 @@ export const useConversations = () => {
               isRead: true
             },
             unreadCount: 0,
-            nextSession: '2024-01-18T16:30:00Z'
+            nextSession: '2024-01-18T16:30:00Z',
+            isFavorite: false,
+            isArchived: false,
+            isPriority: false
           },
           {
             id: 'conv-3',
@@ -156,7 +162,54 @@ export const useConversations = () => {
               isRead: false
             },
             unreadCount: 1,
-            nextSession: '2024-01-16T18:00:00Z'
+            nextSession: '2024-01-16T18:00:00Z',
+            isFavorite: false,
+            isArchived: false,
+            isPriority: true
+          },
+          {
+            id: 'conv-4',
+            client: {
+              id: 'CL004',
+              name: 'Carlos Mendoza',
+              email: 'carlos.mendoza@email.com',
+              avatar: null,
+              isOnline: false
+            },
+            lastMessage: {
+              id: 'msg-4',
+              content: 'Perfecto, nos vemos el viernes',
+              timestamp: '2024-01-14T16:20:00Z',
+              senderId: 'CL004',
+              isRead: true
+            },
+            unreadCount: 0,
+            nextSession: '2024-01-19T11:00:00Z',
+            isFavorite: true,
+            isArchived: false,
+            isPriority: false
+          },
+          {
+            id: 'conv-5',
+            client: {
+              id: 'CL005',
+              name: 'Sofia Herrera',
+              email: 'sofia.herrera@email.com',
+              avatar: null,
+              isOnline: false
+            },
+            lastMessage: {
+              id: 'msg-5',
+              content: 'Muchas gracias por todo',
+              timestamp: '2024-01-10T14:30:00Z',
+              senderId: 'CL005',
+              isRead: true
+            },
+            unreadCount: 0,
+            nextSession: null,
+            isFavorite: false,
+            isArchived: true,
+            isPriority: false
           }
         ];
         

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../../components/Card';
+import { Button } from '../../components/Button';
 import { ClientsFilter } from './components/ClientsFilter';
 import { ClientsTable } from './components/ClientsTable';
 import { ClientDrawer } from './components/ClientDrawer';
 import { NewBookingModal } from './components/NewBookingModal';
 import { UploadDocModal } from './components/UploadDocModal';
 import { DeleteClientDialog } from './components/DeleteClientDialog';
+import { BulkActionsModal } from './components/BulkActionsModal';
+import { downloadClientsCSV, downloadClientStatsCSV, EXPORT_PRESETS } from './utils/exportUtils';
 
 // Mock data para demostración
 const mockClients = [
@@ -132,6 +136,7 @@ const mockClients = [
 ];
 
 export const Clients = () => {
+  const navigate = useNavigate();
   const [clients, setClients] = useState(mockClients);
   const [filteredClients, setFilteredClients] = useState(mockClients);
   const [selectedClients, setSelectedClients] = useState([]);
@@ -145,13 +150,17 @@ export const Clients = () => {
   const [isUploadDocModalOpen, setIsUploadDocModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState(null);
+  const [isBulkActionsModalOpen, setIsBulkActionsModalOpen] = useState(false);
   
   // Filter states
   const [filters, setFilters] = useState({
     search: '',
     tags: [],
     status: 'all',
-    sort: 'name-asc'
+    sort: 'name-asc',
+    therapyType: 'all',
+    satisfaction: 'all',
+    frequency: 'all'
   });
   
   // Apply filters and sorting
@@ -178,6 +187,67 @@ export const Clients = () => {
     // Status filter
     if (filters.status !== 'all') {
       filtered = filtered.filter(client => client.status === filters.status);
+    }
+
+    // Therapy type filter
+    if (filters.therapyType !== 'all') {
+      const therapyTypeMap = {
+        'individual': ['Terapia Individual', 'Ansiedad', 'Depresión'],
+        'couple': ['Terapia de Pareja', 'Comunicación'],
+        'family': ['Terapia Familiar'],
+        'group': ['Terapia Grupal'],
+        'emdr': ['EMDR', 'Trauma'],
+        'cbt': ['TCC', 'Cognitivo-Conductual']
+      };
+      
+      const relevantTags = therapyTypeMap[filters.therapyType] || [];
+      filtered = filtered.filter(client => 
+        client.tags && client.tags.some(tag => 
+          relevantTags.some(relevantTag => 
+            tag.toLowerCase().includes(relevantTag.toLowerCase())
+          )
+        )
+      );
+    }
+
+    // Satisfaction filter
+    if (filters.satisfaction !== 'all') {
+      const satisfactionRanges = {
+        'excellent': { min: 4.5, max: 5.0 },
+        'good': { min: 3.5, max: 4.4 },
+        'average': { min: 2.5, max: 3.4 },
+        'poor': { min: 1.0, max: 2.4 },
+        'no_rating': { min: null, max: null }
+      };
+      
+      const range = satisfactionRanges[filters.satisfaction];
+      if (range.min === null) {
+        filtered = filtered.filter(client => !client.rating || client.rating === 0);
+      } else {
+        filtered = filtered.filter(client => 
+          client.rating && client.rating >= range.min && client.rating <= range.max
+        );
+      }
+    }
+
+    // Frequency filter
+    if (filters.frequency !== 'all') {
+      const frequencyRanges = {
+        'high': { min: 16 },
+        'medium': { min: 6, max: 15 },
+        'low': { min: 1, max: 5 },
+        'none': { min: 0, max: 0 }
+      };
+      
+      const range = frequencyRanges[filters.frequency];
+      filtered = filtered.filter(client => {
+        const sessions = client.sessionsCount || 0;
+        if (range.max !== undefined) {
+          return sessions >= range.min && sessions <= range.max;
+        } else {
+          return sessions >= range.min;
+        }
+      });
     }
     
     // Sorting
@@ -225,8 +295,12 @@ export const Clients = () => {
       search: '',
       tags: [],
       status: 'all',
-      sort: 'name-asc'
+      sort: 'name-asc',
+      therapyType: 'all',
+      satisfaction: 'all',
+      frequency: 'all'
     });
+    setSelectedClients([]);
   };
   
   const handleSort = (key) => {
@@ -253,6 +327,11 @@ export const Clients = () => {
   };
   
   const handleViewClient = (client) => {
+    // Navegar a la página de detalle del cliente
+    navigate(`/clients/${client.id}`);
+  };
+
+  const handleViewClientDrawer = (client) => {
     setSelectedClient(client);
     setIsClientDrawerOpen(true);
   };
@@ -301,6 +380,75 @@ export const Clients = () => {
     setClients(prev => prev.filter(client => client.id !== clientId));
     alert('Cliente eliminado exitosamente');
   };
+
+  // Nuevos handlers para filtros avanzados
+  const handleTherapyTypeChange = (therapyType) => {
+    setFilters(prev => ({ ...prev, therapyType }));
+  };
+
+  const handleSatisfactionChange = (satisfaction) => {
+    setFilters(prev => ({ ...prev, satisfaction }));
+  };
+
+  const handleFrequencyChange = (frequency) => {
+    setFilters(prev => ({ ...prev, frequency }));
+  };
+
+  // Handler para exportar CSV
+  const handleExportCSV = () => {
+    try {
+      downloadClientsCSV(filteredClients, 'clientes_filtrados', EXPORT_PRESETS.complete);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      alert('Error al exportar los datos. Por favor, inténtalo de nuevo.');
+    }
+  };
+
+  // Handler para acciones masivas
+  const handleBulkActions = () => {
+    if (selectedClients.length === 0) {
+      alert('Por favor, selecciona al menos un cliente.');
+      return;
+    }
+    setIsBulkActionsModalOpen(true);
+  };
+
+  const handleExecuteBulkAction = async (actionData) => {
+    console.log('Executing bulk action:', actionData);
+    
+    try {
+      switch (actionData.action) {
+        case 'send_message':
+          alert(`Mensaje enviado a ${actionData.clientIds.length} clientes`);
+          break;
+        case 'send_email':
+          alert(`Email enviado a ${actionData.clientIds.length} clientes`);
+          break;
+        case 'assign_plan':
+          alert(`Plan asignado a ${actionData.clientIds.length} clientes`);
+          break;
+        case 'schedule_session':
+          alert(`Sesiones programadas para ${actionData.clientIds.length} clientes`);
+          break;
+        case 'add_notes':
+          alert(`Notas añadidas a ${actionData.clientIds.length} clientes`);
+          break;
+        default:
+          alert('Acción ejecutada correctamente');
+      }
+      
+      // Limpiar selección después de ejecutar la acción
+      setSelectedClients([]);
+    } catch (error) {
+      console.error('Error executing bulk action:', error);
+      alert('Error al ejecutar la acción. Por favor, inténtalo de nuevo.');
+    }
+  };
+
+  // Obtener objetos de clientes seleccionados para las acciones masivas
+  const getSelectedClientObjects = () => {
+    return filteredClients.filter(client => selectedClients.includes(client.id));
+  };
   
   return (
     <div className="space-y-6">
@@ -317,12 +465,50 @@ export const Clients = () => {
         onTagsChange={(tags) => handleFilterChange({ tags })}
         onStatusChange={(status) => handleFilterChange({ status })}
         onSortChange={(sort) => handleFilterChange({ sort })}
+        onTherapyTypeChange={handleTherapyTypeChange}
+        onSatisfactionChange={handleSatisfactionChange}
+        onFrequencyChange={handleFrequencyChange}
+        onExportCSV={handleExportCSV}
         onClearFilters={handleClearFilters}
         searchValue={filters.search}
         selectedTags={filters.tags}
         selectedStatus={filters.status}
         selectedSort={filters.sort}
+        selectedTherapyType={filters.therapyType}
+        selectedSatisfaction={filters.satisfaction}
+        selectedFrequency={filters.frequency}
       />
+
+      {/* Acciones masivas */}
+      {selectedClients.length > 0 && (
+        <Card>
+          <div className="p-4 bg-blue-50 border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-blue-900">
+                  {selectedClients.length} cliente{selectedClients.length !== 1 ? 's' : ''} seleccionado{selectedClients.length !== 1 ? 's' : ''}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleBulkActions}
+                  >
+                    Acciones masivas
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedClients([])}
+                  >
+                    Cancelar selección
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
       
       {/* Tabla de clientes */}
       <Card>
@@ -335,6 +521,7 @@ export const Clients = () => {
           onSelectClient={handleSelectClient}
           onSelectAll={handleSelectAllClients}
           onViewClient={handleViewClient}
+          onViewClientDrawer={handleViewClientDrawer}
           onNewBooking={handleNewBooking}
           onUploadDoc={handleUploadDoc}
           onDeleteClient={handleDeleteClient}
@@ -383,6 +570,14 @@ export const Clients = () => {
         client={clientToDelete}
         onDelete={handleConfirmDeleteClient}
         onDownloadData={handleDownloadClientData}
+      />
+
+      {/* Bulk Actions Modal */}
+      <BulkActionsModal
+        isOpen={isBulkActionsModalOpen}
+        onClose={() => setIsBulkActionsModalOpen(false)}
+        selectedClients={getSelectedClientObjects()}
+        onExecuteAction={handleExecuteBulkAction}
       />
     </div>
   );

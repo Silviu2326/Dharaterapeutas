@@ -11,6 +11,7 @@ import { TherapiesSelect } from './components/TherapiesSelect';
 import { CredentialsTable } from './components/CredentialsTable';
 import { RatesForm } from './components/RatesForm';
 import { AvailabilitySwitch } from './components/AvailabilitySwitch';
+import { LegalInfo } from './components/LegalInfo';
 import { PublicPreviewModal } from './components/PublicPreviewModal';
 import { PersonalStats } from './components/PersonalStats';
 import { HeaderActions, SaveStatus } from './components/HeaderActions';
@@ -37,7 +38,14 @@ export const ProfessionalProfile = () => {
       packagePrice: '',
       currency: 'EUR'
     },
-    isAvailable: true
+    isAvailable: true,
+    legalInfo: {
+      licenses: [],
+      professionalRegistration: '',
+      ethicsCode: '',
+      insuranceCoverage: '',
+      dataProtectionCompliance: false
+    }
   });
 
   // Estado original para comparar cambios
@@ -93,7 +101,31 @@ export const ProfessionalProfile = () => {
             packagePrice: '300',
             currency: 'EUR'
           },
-          isAvailable: true
+          isAvailable: true,
+          legalInfo: {
+            licenses: [
+              {
+                id: 1,
+                type: 'Colegio Oficial de Psicólogos',
+                number: 'M-12345',
+                issuingBody: 'COP Madrid',
+                expiryDate: '',
+                status: 'active'
+              },
+              {
+                id: 2,
+                type: 'Licencia Sanitaria',
+                number: 'CS-2023-001',
+                issuingBody: 'Consejería de Sanidad - CAM',
+                expiryDate: '2025-12-31',
+                status: 'active'
+              }
+            ],
+            professionalRegistration: 'Colegiada nº M-12345 en el Colegio Oficial de Psicólogos de Madrid desde 2015',
+            ethicsCode: 'Código Deontológico del Colegio Oficial de Psicólogos',
+            insuranceCoverage: 'Mapfre - Póliza RC Profesional nº 123456789',
+            dataProtectionCompliance: true
+          }
         };
         
         setProfileData(mockData);
@@ -256,6 +288,15 @@ export const ProfessionalProfile = () => {
               <CredentialsTable
                 credentials={profileData.credentials}
                 onChange={(credentials) => updateProfileField('credentials', credentials)}
+                isEditing={isEditing}
+              />
+            </Card>
+
+            {/* Información Legal */}
+            <Card>
+              <LegalInfo
+                legalInfo={profileData.legalInfo}
+                onChange={(legalInfo) => updateProfileField('legalInfo', legalInfo)}
                 isEditing={isEditing}
               />
             </Card>

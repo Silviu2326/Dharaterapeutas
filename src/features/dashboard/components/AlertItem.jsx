@@ -14,6 +14,19 @@ const getAlertIcon = (type) => {
   }
 };
 
+const getAlertIconLabel = (type) => {
+  switch (type) {
+    case 'appointment':
+      return 'Icono de cita';
+    case 'document':
+      return 'Icono de documento';
+    case 'subscription':
+      return 'Icono de suscripción';
+    default:
+      return 'Icono de alerta';
+  }
+};
+
 const getAlertColor = (priority) => {
   switch (priority) {
     case 'high':
@@ -28,6 +41,7 @@ const getAlertColor = (priority) => {
 
 export const AlertItem = ({ alert, onClick }) => {
   const Icon = getAlertIcon(alert.type);
+  const iconLabel = getAlertIconLabel(alert.type);
   const colorClasses = getAlertColor(alert.priority);
 
   return (
@@ -42,9 +56,13 @@ export const AlertItem = ({ alert, onClick }) => {
           onClick && onClick(alert);
         }
       }}
-      aria-label={`Alerta: ${alert.message}`}
+      aria-label={`Alerta de prioridad ${alert.priority}: ${alert.message}. ${alert.time || ''}`}
     >
-      <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
+      <Icon 
+        className="h-5 w-5 mr-3 flex-shrink-0" 
+        aria-label={iconLabel}
+        role="img"
+      />
       <div className="flex-1">
         <p className="text-sm font-medium">{alert.message}</p>
         {alert.time && (

@@ -76,67 +76,126 @@ export const CredentialsTable = ({ credentials = [], onChange, isEditing = false
       </div>
 
       {credentials.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-200 rounded-lg">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  Título / Certificación
-                </th>
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  Centro / Institución
-                </th>
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                  Año
-                </th>
-                {isEditing && (
-                  <th className="border border-gray-200 px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                    Acciones
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {credentials.map((credential, index) => (
-                <tr key={credential.id || index} className="hover:bg-gray-50">
-                  <td className="border border-gray-200 px-4 py-3 text-sm text-gray-900">
-                    <div>
-                      <div className="font-medium">{credential.title}</div>
-                      {credential.description && (
-                        <div className="text-gray-600 text-xs mt-1">{credential.description}</div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="border border-gray-200 px-4 py-3 text-sm text-gray-700">
-                    {credential.institution}
-                  </td>
-                  <td className="border border-gray-200 px-4 py-3 text-sm text-gray-700">
-                    {credential.year}
-                  </td>
-                  {isEditing && (
-                    <td className="border border-gray-200 px-4 py-3 text-center">
-                      <div className="flex items-center justify-center space-x-2">
-                        <button
-                          onClick={() => openEditModal(credential)}
-                          className="text-sage hover:text-sage/80 p-1 rounded transition-colors"
-                          aria-label={`Editar ${credential.title}`}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCredential(credential.id)}
-                          className="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
-                          aria-label={`Eliminar ${credential.title}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+        <div className="space-y-3">
+          {/* Vista de tarjetas para mejor legibilidad */}
+          <div className="grid gap-3">
+            {credentials.map((credential, index) => (
+              <div key={credential.id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 truncate">{credential.title}</h4>
+                        {credential.description && (
+                          <p className="text-gray-600 text-sm mt-1 line-clamp-2">{credential.description}</p>
+                        )}
                       </div>
-                    </td>
+                      <div className="flex-shrink-0 text-right">
+                        <p className="text-sm font-medium text-gray-700">{credential.year}</p>
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Institución:</span> {credential.institution}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {isEditing && (
+                    <div className="flex items-center space-x-2 ml-4 flex-shrink-0">
+                      <button
+                        onClick={() => openEditModal(credential)}
+                        className="text-sage hover:text-sage/80 p-2 rounded-full hover:bg-sage/10 transition-colors"
+                        aria-label={`Editar ${credential.title}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCredential(credential.id)}
+                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-colors"
+                        aria-label={`Eliminar ${credential.title}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Opción para vista de tabla expandible si hay muchas credenciales */}
+          {credentials.length > 5 && (
+            <details className="mt-4">
+              <summary className="cursor-pointer text-sm text-sage hover:text-sage/80 font-medium">
+                Ver en formato tabla
+              </summary>
+              <div className="mt-3 overflow-x-auto bg-white border border-gray-200 rounded-lg">
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="w-full border-collapse">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="border-b border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          Título / Certificación
+                        </th>
+                        <th className="border-b border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          Centro / Institución
+                        </th>
+                        <th className="border-b border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          Año
+                        </th>
+                        {isEditing && (
+                          <th className="border-b border-gray-200 px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                            Acciones
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {credentials.map((credential, index) => (
+                        <tr key={credential.id || index} className="hover:bg-gray-50">
+                          <td className="border-b border-gray-200 px-4 py-3 text-sm text-gray-900">
+                            <div>
+                              <div className="font-medium">{credential.title}</div>
+                              {credential.description && (
+                                <div className="text-gray-600 text-xs mt-1">{credential.description}</div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="border-b border-gray-200 px-4 py-3 text-sm text-gray-700">
+                            {credential.institution}
+                          </td>
+                          <td className="border-b border-gray-200 px-4 py-3 text-sm text-gray-700">
+                            {credential.year}
+                          </td>
+                          {isEditing && (
+                            <td className="border-b border-gray-200 px-4 py-3 text-center">
+                              <div className="flex items-center justify-center space-x-2">
+                                <button
+                                  onClick={() => openEditModal(credential)}
+                                  className="text-sage hover:text-sage/80 p-1 rounded transition-colors"
+                                  aria-label={`Editar ${credential.title}`}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCredential(credential.id)}
+                                  className="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+                                  aria-label={`Eliminar ${credential.title}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
+          )}
         </div>
       ) : isEditing ? (
         <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">

@@ -12,6 +12,12 @@ export const Dashboard = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
 
+  // Generar fechas dinámicas basadas en la fecha actual
+  const now = new Date();
+  const currentMonth = now.toLocaleDateString('es-ES', { month: 'short' });
+  const nextSessionTime = new Date(now.getTime() + 15 * 60 * 1000); // +15 minutos
+  const subscriptionExpiry = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // +3 días
+
   // Datos de ejemplo - en una app real vendrían de APIs
   const metricsData = {
     monthlyIncome: '€2,340',
@@ -26,21 +32,24 @@ export const Dashboard = () => {
       type: 'appointment',
       priority: 'high',
       message: 'Próxima sesión en 15 minutos',
-      time: '14:45 - María González'
+      time: `${nextSessionTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - Ana Martínez`,
+      clientName: 'Ana Martínez'
     },
     {
       id: 2,
       type: 'document',
       priority: 'medium',
       message: 'Documento pendiente de firmar',
-      time: 'Consentimiento informado - Juan Pérez'
+      time: 'Consentimiento informado - Juan Pérez',
+      clientName: 'Juan Pérez'
     },
     {
       id: 3,
       type: 'subscription',
       priority: 'medium',
       message: 'Suscripción vence en 3 días',
-      time: 'Plan Premium - Renovar antes del 15/01'
+      time: `Plan Premium - Renovar antes del ${subscriptionExpiry.toLocaleDateString('es-ES')}`,
+      clientName: null
     }
   ];
 
@@ -51,14 +60,19 @@ export const Dashboard = () => {
     { date: new Date(Date.now() + 432000000), count: 4 } // +5 días
   ];
 
-  const incomeData = [
-    { month: 'Ago', income: 1800 },
-    { month: 'Sep', income: 2100 },
-    { month: 'Oct', income: 2400 },
-    { month: 'Nov', income: 2200 },
-    { month: 'Dic', income: 2800 },
-    { month: 'Ene', income: 2340 }
-  ];
+  // Generar datos de ingresos dinámicos para los últimos 6 meses
+  const generateIncomeData = () => {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = date.toLocaleDateString('es-ES', { month: 'short' });
+      const income = Math.floor(Math.random() * 1000) + 1800; // Ingresos aleatorios entre 1800-2800
+      months.push({ month: monthName, income });
+    }
+    return months;
+  };
+
+  const incomeData = generateIncomeData();
 
   if (isLoading) {
     return <Loader />;

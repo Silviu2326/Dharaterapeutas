@@ -79,12 +79,6 @@ export const PublicPreviewModal = ({ isOpen, onClose, profileData }) => {
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold text-deep">{name}</h1>
-                    {isAvailable && (
-                      <div className="flex items-center space-x-2 bg-sage/10 border border-sage/20 rounded-full px-3 py-1">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium text-sage">Disponible</span>
-                      </div>
-                    )}
                   </div>
                   
                   <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">

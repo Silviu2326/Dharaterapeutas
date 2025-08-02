@@ -39,8 +39,18 @@ const PDFPreview = ({ url, filename }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const handleLoad = () => {
+    setLoading(false);
+    setError(false);
+  };
+
+  const handleError = () => {
+    setLoading(false);
+    setError(true);
+  };
+
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col bg-gray-100">
       {loading && (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -58,20 +68,26 @@ const PDFPreview = ({ url, filename }) => {
             </div>
             <p className="text-gray-600 mb-2">No se pudo cargar el PDF</p>
             <p className="text-sm text-gray-500">{filename}</p>
+            <button 
+              onClick={() => window.open(url, '_blank')}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Abrir en nueva pestaña
+            </button>
           </div>
         </div>
       )}
       
-      <iframe
-        src={url}
-        className={`w-full flex-1 border-0 ${loading || error ? 'hidden' : ''}`}
-        onLoad={() => setLoading(false)}
-        onError={() => {
-          setLoading(false);
-          setError(true);
-        }}
-        title={filename}
-      />
+      {!error && (
+        <iframe
+          src={url}
+          className={`w-full flex-1 border-0 ${loading ? 'hidden' : ''}`}
+          onLoad={handleLoad}
+          onError={handleError}
+          title={filename}
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+        />
+      )}
     </div>
   );
 };
@@ -462,7 +478,7 @@ export const PreviewModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-hidden" onClick={(e) => e.stopPropagation()}>
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-75 transition-opacity"
@@ -470,7 +486,7 @@ export const PreviewModal = ({
       />
       
       {/* Modal */}
-      <div className="fixed inset-0 flex flex-col">
+      <div className="fixed inset-0 flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-white border-b">
           <div className="flex items-center gap-4">

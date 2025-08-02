@@ -8,7 +8,8 @@ import {
   StarIcon,
   CalendarIcon,
   EnvelopeIcon,
-  PhoneIcon
+  PhoneIcon,
+  WindowIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 
@@ -94,6 +95,7 @@ const DesktopRow = ({
   isSelected, 
   onSelect, 
   onClick, 
+  onViewDrawer,
   onChatClick, 
   onNewBookingClick, 
   onUploadDocClick, 
@@ -155,9 +157,17 @@ const DesktopRow = ({
           <ActionButton
             icon={EyeIcon}
             onClick={onClick}
-            tooltip="Ver ficha"
+            tooltip="Ver página de detalle"
             variant="primary"
           />
+          {onViewDrawer && (
+            <ActionButton
+              icon={WindowIcon}
+              onClick={onViewDrawer}
+              tooltip="Ver en panel lateral"
+              variant="default"
+            />
+          )}
           <ActionButton
             icon={ChatBubbleLeftIcon}
             onClick={onChatClick}
@@ -193,6 +203,7 @@ const MobileCard = ({
   isSelected, 
   onSelect, 
   onClick, 
+  onViewDrawer,
   onChatClick, 
   onNewBookingClick, 
   onUploadDocClick, 
@@ -257,13 +268,21 @@ const MobileCard = ({
             </div>
           </div>
           
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
             <ActionButton
               icon={EyeIcon}
               onClick={onClick}
-              tooltip="Ver ficha"
+              tooltip="Ver página de detalle"
               variant="primary"
             />
+            {onViewDrawer && (
+              <ActionButton
+                icon={WindowIcon}
+                onClick={onViewDrawer}
+                tooltip="Ver en panel lateral"
+                variant="default"
+              />
+            )}
             <ActionButton
               icon={ChatBubbleLeftIcon}
               onClick={onChatClick}

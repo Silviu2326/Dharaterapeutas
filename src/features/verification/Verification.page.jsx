@@ -19,7 +19,7 @@ const mockSubmittedFiles = [
     type: 'diploma',
     mimeType: 'application/pdf',
     size: 2048576,
-    uploadDate: '2024-01-15T10:30:00Z',
+    uploadDate: '2025-01-15T10:30:00Z',
     status: 'received'
   },
   {
@@ -29,7 +29,7 @@ const mockSubmittedFiles = [
     type: 'insurance',
     mimeType: 'application/pdf',
     size: 1536000,
-    uploadDate: '2024-01-15T10:35:00Z',
+    uploadDate: '2025-01-15T10:35:00Z',
     status: 'received'
   }
 ];
@@ -38,7 +38,7 @@ const mockAuditEvents = [
   {
     id: 1,
     type: 'submitted',
-    date: '2024-01-15T10:30:00Z',
+    date: '2025-01-15T10:30:00Z',
     title: 'Documentos enviados',
     description: 'Se enviaron 2 documentos para verificación',
     details: ['Diploma de Psicología Clínica', 'Seguro de Responsabilidad Civil'],
@@ -47,7 +47,7 @@ const mockAuditEvents = [
   {
     id: 2,
     type: 'under_review',
-    date: '2024-01-16T09:15:00Z',
+    date: '2025-01-16T09:15:00Z',
     title: 'Revisión iniciada',
     description: 'El equipo de verificación ha comenzado la revisión',
     reviewer: 'Dr. María González'
@@ -55,7 +55,7 @@ const mockAuditEvents = [
   {
     id: 3,
     type: 'approved',
-    date: '2024-01-18T14:20:00Z',
+    date: '2025-01-18T14:20:00Z',
     title: 'Verificación aprobada',
     description: 'Todos los documentos han sido verificados y aprobados',
     reviewer: 'Dr. María González'
@@ -64,7 +64,7 @@ const mockAuditEvents = [
 
 const mockRejectedComment = {
   comment: 'El diploma presentado no cumple con los requisitos mínimos. La imagen está borrosa y no se puede verificar la autenticidad del sello institucional. Además, falta información sobre el número de registro profesional.',
-  reviewDate: '2024-01-18T14:20:00Z',
+  reviewDate: '2025-01-18T14:20:00Z',
   reviewerName: 'Dr. María González',
   suggestions: [
     'Escanea el diploma en alta resolución (mínimo 300 DPI)',
@@ -154,6 +154,19 @@ export const Verification = () => {
     // In a real app, this would trigger a file download
   };
 
+  const handleDeleteFile = (fileId) => {
+    // Only allow deletion if verification is not pending or approved
+    if (verificationStatus === 'pending' || verificationStatus === 'approved') {
+      return;
+    }
+    
+    setSubmittedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
+  // Calculate total submitted documents count
+  const totalSubmittedDocs = submittedFiles.length;
+  const requiredDocs = 3; // At least 1 diploma + 1 insurance + 1 additional document
+
   const canSubmit = diplomaFiles.length > 0 && insuranceFile !== null;
 
   if (loading) {
@@ -225,6 +238,8 @@ export const Verification = () => {
                 onSubmit={handleSubmitVerification}
                 diplomaCount={diplomaFiles.length}
                 hasInsurance={insuranceFile !== null}
+                totalSubmittedDocs={totalSubmittedDocs}
+                requiredDocs={requiredDocs}
               />
             </Card>
           </div>
@@ -243,10 +258,14 @@ export const Verification = () => {
 
             {/* Files Table */}
             <Card>
-              <h2 className="text-xl font-semibold text-deep mb-4">Archivos Enviados</h2>
+              <h2 className="text-xl font-semibold text-deep mb-4">
+                Archivos Enviados ({totalSubmittedDocs} de {requiredDocs} documentos)
+              </h2>
               <FilesTable
                 files={submittedFiles}
                 onDownload={handleDownloadFile}
+                onDelete={handleDeleteFile}
+                canDelete={verificationStatus !== 'pending' && verificationStatus !== 'approved'}
               />
             </Card>
 

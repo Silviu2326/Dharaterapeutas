@@ -12,7 +12,9 @@ import {
   DocumentTextIcon,
   ArchiveBoxIcon,
   CalendarIcon,
-  UserIcon
+  UserIcon,
+  PencilIcon,
+  EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import { fileTypeUtils } from './TypeChips';
 
@@ -112,7 +114,7 @@ const ActionButton = ({ onClick, icon: Icon, label, variant = 'default', disable
   );
 };
 
-const DropdownMenu = ({ document, onPreview, onDownload, onResend, onDelete }) => {
+const DropdownMenu = ({ document, onPreview, onDownload, onResend, onEdit, onDelete }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const menuItems = [
@@ -143,6 +145,15 @@ const DropdownMenu = ({ document, onPreview, onDownload, onResend, onDelete }) =
       },
       variant: 'success',
       disabled: !document.client
+    },
+    {
+      label: 'Editar',
+      icon: PencilIcon,
+      onClick: () => {
+        onEdit();
+        setIsOpen(false);
+      },
+      variant: 'default'
     },
     {
       label: 'Eliminar',
@@ -206,6 +217,7 @@ export const DocumentRow = ({
   onPreview,
   onDownload,
   onResend,
+  onEdit,
   onDelete
 }) => {
   const FileIcon = getFileTypeIcon(document.filename);
@@ -231,9 +243,14 @@ export const DocumentRow = ({
         <div className="flex items-center gap-3">
           <FileIcon className={`w-8 h-8 ${fileTypeColor} flex-shrink-0`} />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              {document.title}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {document.title}
+              </p>
+              {document.isPrivate && (
+                <EyeSlashIcon className="w-4 h-4 text-amber-500 flex-shrink-0" title="Documento privado" />
+              )}
+            </div>
             <p className="text-xs text-gray-500 truncate">
               {document.filename}
             </p>
@@ -353,6 +370,13 @@ export const DocumentRow = ({
             />
             
             <ActionButton
+              onClick={onEdit}
+              icon={PencilIcon}
+              label="Editar"
+              variant="default"
+            />
+            
+            <ActionButton
               onClick={onDelete}
               icon={TrashIcon}
               label="Eliminar"
@@ -367,6 +391,7 @@ export const DocumentRow = ({
               onPreview={onPreview}
               onDownload={onDownload}
               onResend={onResend}
+              onEdit={onEdit}
               onDelete={onDelete}
             />
           </div>

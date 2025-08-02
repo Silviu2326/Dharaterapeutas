@@ -16,7 +16,9 @@ const STATUS_CONFIG = {
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-200',
     text: 'En revisión',
-    description: 'Tus documentos están siendo revisados por nuestro equipo'
+    description: 'Tus documentos están siendo revisados por nuestro equipo',
+    estimatedTime: '2-3 días hábiles',
+    supportContact: 'soporte@empresa.com'
   },
   rejected: {
     icon: XCircle,
@@ -58,6 +60,17 @@ export const StatusBanner = ({ status = 'not_submitted', className = '' }) => {
           <p className="text-gray-700 mt-1">
             {config.description}
           </p>
+          {status === 'pending' && (
+            <div className="mt-3 text-sm text-gray-600">
+              <p className="font-medium">⏱️ Tiempo estimado: 2-5 días hábiles</p>
+              <p className="mt-1">
+                📞 ¿Necesitas ayuda? Contacta a soporte: 
+                <a href="mailto:soporte@dharaterapeutas.com" className="text-yellow-700 underline hover:text-yellow-900 ml-1">
+                  soporte@dharaterapeutas.com
+                </a>
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

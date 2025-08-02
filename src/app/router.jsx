@@ -14,6 +14,7 @@ import { PlansSubscription } from '../features/plansSubscription/PlansSubscripti
 import { Availability } from '../features/availability/Availability.page';
 import { Bookings } from '../features/bookings/Bookings.page';
 import { Clients } from '../features/clients/Clients.page';
+import { ClientDetailPage } from '../features/clients/components/ClientDetailPage';
 import { Chat } from '../features/chat/Chat.page';
 import { DocumentsMaterials } from '../features/documentsMaterials/DocumentsMaterials.page';
 import { Reviews } from '../features/reviews/Reviews.page';
@@ -75,6 +76,7 @@ export const AppRouter = () => {
         <Route path="disponibilidad" element={<Availability />} />
         <Route path="reservas" element={<Bookings />} />
         <Route path="clientes" element={<Clients />} />
+        <Route path="clients/:clientId" element={<ClientDetailPage />} />
         <Route path="chat" element={<Chat />} />
         <Route path="documentos-materiales" element={<DocumentsMaterials />} />
         <Route path="reseñas" element={<Reviews />} />

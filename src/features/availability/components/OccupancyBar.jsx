@@ -19,6 +19,23 @@ const getOccupancyColor = (percentage) => {
   return 'bg-gray-300';
 };
 
+// Patrones para mejorar accesibilidad (color-blind friendly)
+const getOccupancyPattern = (percentage) => {
+  if (percentage >= 90) return 'bg-gradient-to-t from-red-600 to-red-400';
+  if (percentage >= 75) return 'bg-gradient-to-t from-orange-600 to-orange-400';
+  if (percentage >= 50) return 'bg-gradient-to-t from-yellow-600 to-yellow-400';
+  if (percentage >= 25) return 'bg-gradient-to-t from-green-600 to-green-400';
+  return 'bg-gray-300';
+};
+
+const getOccupancySymbol = (percentage) => {
+  if (percentage >= 90) return '▓▓▓'; // Muy ocupado
+  if (percentage >= 75) return '▓▓░'; // Ocupado
+  if (percentage >= 50) return '▓░░'; // Moderado
+  if (percentage >= 25) return '░░░'; // Disponible
+  return '   '; // Libre
+};
+
 const getOccupancyTextColor = (percentage) => {
   if (percentage >= 90) return 'text-red-700';
   if (percentage >= 75) return 'text-orange-700';
@@ -36,13 +53,15 @@ const getOccupancyStatus = (percentage) => {
 };
 
 const DayOccupancyBar = ({ day, data, isToday = false }) => {
-  const occupancyPercentage = data?.occupancy || 0;
   const availableHours = data?.availableHours || 0;
   const bookedHours = data?.bookedHours || 0;
   const totalHours = availableHours + bookedHours;
+  // Calcular ocupación basada en horas reales
+  const occupancyPercentage = totalHours > 0 ? Math.round((bookedHours / totalHours) * 100) : 0;
   
   const status = getOccupancyStatus(occupancyPercentage);
   const StatusIcon = status.icon;
+  const occupancySymbol = getOccupancySymbol(occupancyPercentage);
 
   return (
     <div className={`
@@ -68,19 +87,25 @@ const DayOccupancyBar = ({ day, data, isToday = false }) => {
           {/* Available hours background */}
           <div className="absolute inset-0 bg-gray-200"></div>
           
-          {/* Booked hours */}
+          {/* Booked hours with pattern */}
           <div 
             className={`
               absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out
-              ${getOccupancyColor(occupancyPercentage)}
+              ${getOccupancyPattern(occupancyPercentage)}
             `}
             style={{ height: `${occupancyPercentage}%` }}
           ></div>
           
-          {/* Percentage label */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          {/* Accessibility symbols overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className={`
-              text-xs font-bold
+              text-xs font-mono leading-none
+              ${occupancyPercentage > 50 ? 'text-white' : 'text-gray-700'}
+            `}>
+              {occupancySymbol}
+            </span>
+            <span className={`
+              text-xs font-bold mt-1
               ${occupancyPercentage > 50 ? 'text-white' : 'text-gray-700'}
             `}>
               {occupancyPercentage}%
@@ -152,15 +177,15 @@ export const OccupancyBar = ({
   showSummary = true,
   className = ''
 }) => {
-  // Mock data if not provided
+  // Mock data if not provided - datos consistentes
   const mockWeekData = [
-    { occupancy: 75, availableHours: 6, bookedHours: 6 }, // Monday
-    { occupancy: 60, availableHours: 8, bookedHours: 5 }, // Tuesday
-    { occupancy: 90, availableHours: 2, bookedHours: 8 }, // Wednesday
-    { occupancy: 45, availableHours: 7, bookedHours: 4 }, // Thursday
-    { occupancy: 80, availableHours: 4, bookedHours: 7 }, // Friday
-    { occupancy: 30, availableHours: 5, bookedHours: 2 }, // Saturday
-    { occupancy: 15, availableHours: 6, bookedHours: 1 }  // Sunday
+    { availableHours: 2, bookedHours: 6 }, // Monday - 75% ocupación
+    { availableHours: 5, bookedHours: 8 }, // Tuesday - 62% ocupación
+    { availableHours: 1, bookedHours: 9 }, // Wednesday - 90% ocupación
+    { availableHours: 7, bookedHours: 4 }, // Thursday - 36% ocupación
+    { availableHours: 3, bookedHours: 9 }, // Friday - 75% ocupación
+    { availableHours: 5, bookedHours: 2 }, // Saturday - 29% ocupación
+    { availableHours: 6, bookedHours: 1 }  // Sunday - 14% ocupación
   ];
 
   const displayData = weekData.length > 0 ? weekData : mockWeekData;
@@ -215,24 +240,34 @@ export const OccupancyBar = ({
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-600">
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-gray-300 rounded"></div>
-              <span>Disponible</span>
+              <div className="w-3 h-3 bg-gray-300 rounded flex items-center justify-center">
+                <span className="text-[6px] font-mono">   </span>
+              </div>
+              <span>Libre (0-24%)</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-green-500 rounded"></div>
-              <span>Poco ocupado</span>
+              <div className="w-3 h-3 bg-gradient-to-t from-green-600 to-green-400 rounded flex items-center justify-center">
+                <span className="text-[6px] font-mono text-white">░░░</span>
+              </div>
+              <span>Disponible (25-49%)</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-              <span>Moderado</span>
+              <div className="w-3 h-3 bg-gradient-to-t from-yellow-600 to-yellow-400 rounded flex items-center justify-center">
+                <span className="text-[6px] font-mono text-white">▓░░</span>
+              </div>
+              <span>Moderado (50-74%)</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-orange-500 rounded"></div>
-              <span>Ocupado</span>
+              <div className="w-3 h-3 bg-gradient-to-t from-orange-600 to-orange-400 rounded flex items-center justify-center">
+                <span className="text-[6px] font-mono text-white">▓▓░</span>
+              </div>
+              <span>Ocupado (75-89%)</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-red-500 rounded"></div>
-              <span>Muy ocupado</span>
+              <div className="w-3 h-3 bg-gradient-to-t from-red-600 to-red-400 rounded flex items-center justify-center">
+                <span className="text-[6px] font-mono text-white">▓▓▓</span>
+              </div>
+              <span>Muy ocupado (90%+)</span>
             </div>
           </div>
         </div>

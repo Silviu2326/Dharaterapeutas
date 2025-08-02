@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { ConversationsList } from './components/ConversationsList';
+import { ConversationsList, useConversations } from './components/ConversationsList';
 import { ConversationsSearch } from './components/ConversationsSearch';
-import { ConversationsFilter } from './components/ConversationsFilter';
+import { ConversationsFilter, useConversationsFilter } from './components/ConversationsFilter';
 import { ChatHeader } from './components/ChatHeader';
-import { MessagesPane } from './components/MessagesPane';
+import { MessagesPane, useMessages } from './components/MessagesPane';
 import { MessageInput } from './components/MessageInput';
 import { TypingIndicatorContainer } from './components/TypingIndicator';
 
 export const Chat = () => {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Usar hooks personalizados
+  const { conversations, isLoading, error, markAsRead } = useConversations();
+  const { activeFilter, setActiveFilter, conversationCounts, filteredConversations } = useConversationsFilter(conversations);
+  const { messages, isLoading: messagesLoading, sendMessage, markAsRead: markMessageAsRead } = useMessages(selectedConversation?.id);
 
   // Detectar si es móvil
   useEffect(() => {
@@ -31,15 +35,40 @@ export const Chat = () => {
   // Manejar selección de conversación
   const handleConversationSelect = (conversation) => {
     setSelectedConversation(conversation);
+    // Marcar conversación como leída
+    if (conversation.unreadCount > 0) {
+      markAsRead(conversation.id);
+    }
     if (isMobile) {
       setIsSidebarOpen(false);
     }
   };
 
+  // Filtrar conversaciones por búsqueda
+  const searchFilteredConversations = filteredConversations.filter(conversation => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      conversation.client.name.toLowerCase().includes(searchLower) ||
+      conversation.client.email.toLowerCase().includes(searchLower) ||
+      (conversation.lastMessage?.content || '').toLowerCase().includes(searchLower)
+    );
+  });
+
   // Manejar envío de mensaje
-  const handleSendMessage = (messageData) => {
-    console.log('Sending message:', messageData);
-    // Aquí se integraría con la API real
+  const handleSendMessage = async (messageData) => {
+    if (!selectedConversation) return;
+    
+    try {
+      await sendMessage(
+        messageData.content,
+        messageData.attachments?.length > 0 ? 'mixed' : 'text',
+        messageData.attachments || []
+      );
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Aquí podrías mostrar una notificación de error
+    }
   };
 
   // Manejar eventos de escritura
@@ -97,16 +126,19 @@ export const Chat = () => {
           <ConversationsFilter
             activeFilter={activeFilter}
             onFilterChange={setActiveFilter}
+            conversationCounts={conversationCounts}
           />
         </div>
         
         {/* Lista de conversaciones */}
         <div className="flex-1 overflow-hidden">
           <ConversationsList
+            conversations={searchFilteredConversations}
+            selectedConversationId={selectedConversation?.id}
+            onSelectConversation={handleConversationSelect}
+            isLoading={isLoading}
             searchTerm={searchTerm}
-            activeFilter={activeFilter}
-            selectedConversation={selectedConversation}
-            onConversationSelect={handleConversationSelect}
+            filter={activeFilter}
           />
         </div>
       </div>
@@ -133,7 +165,10 @@ export const Chat = () => {
             {/* Área de mensajes */}
             <div className="flex-1 flex flex-col min-h-0">
               <MessagesPane
-                conversationId={selectedConversation.id}
+                messages={messages}
+                currentUserId="therapist"
+                isLoading={messagesLoading}
+                onMessageRead={markMessageAsRead}
                 className="flex-1"
               />
               
@@ -184,11 +219,11 @@ export const Chat = () => {
               {/* Estadísticas rápidas */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <div className="text-2xl font-bold text-sage-600 mb-1">12</div>
+                  <div className="text-2xl font-bold text-sage-600 mb-1">{conversationCounts.all}</div>
                   <div className="text-gray-600">Conversaciones activas</div>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <div className="text-2xl font-bold text-blue-600 mb-1">3</div>
+                  <div className="text-2xl font-bold text-blue-600 mb-1">{conversationCounts.unread}</div>
                   <div className="text-gray-600">Mensajes sin leer</div>
                 </div>
               </div>

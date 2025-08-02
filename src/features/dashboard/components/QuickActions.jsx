@@ -1,11 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Clock, Plus, Send } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { AddAvailabilityModal } from './AddAvailabilityModal';
+import { CreateAppointmentModal } from './CreateAppointmentModal';
+import { BroadcastMessageModal } from './BroadcastMessageModal';
 
 export const QuickActions = () => {
-  const navigate = useNavigate();
+  const [modals, setModals] = useState({
+    availability: false,
+    appointment: false,
+    broadcast: false
+  });
+
+  const openModal = (modalType) => {
+    setModals(prev => ({ ...prev, [modalType]: true }));
+  };
+
+  const closeModal = (modalType) => {
+    setModals(prev => ({ ...prev, [modalType]: false }));
+  };
+
+  const handleSaveAvailability = (data) => {
+    console.log('Guardando disponibilidad:', data);
+    // Aquí se implementaría la lógica para guardar en la API
+    alert(`Bloque ${data.type === 'available' ? 'de disponibilidad' : 'bloqueado'} añadido para ${data.date} de ${data.startTime} a ${data.endTime}`);
+  };
+
+  const handleSaveAppointment = (data) => {
+    console.log('Creando cita:', data);
+    // Aquí se implementaría la lógica para crear la cita en la API
+    alert(`Cita creada para ${data.clientName} el ${data.date} a las ${data.startTime}`);
+  };
+
+  const handleSendBroadcast = (data) => {
+    console.log('Enviando mensaje masivo:', data);
+    // Aquí se implementaría la lógica para enviar el mensaje
+    const channels = [];
+    if (data.sendEmail) channels.push('email');
+    if (data.sendSMS) channels.push('SMS');
+    alert(`Mensaje enviado por ${channels.join(' y ')} a ${data.recipients}`);
+  };
 
   const actions = [
     {
@@ -13,7 +48,7 @@ export const QuickActions = () => {
       label: 'Añadir bloqueo horario',
       icon: Clock,
       color: 'bg-blue-500 hover:bg-blue-600',
-      action: () => navigate('/disponibilidad'),
+      action: () => openModal('availability'),
       ariaLabel: 'Añadir bloqueo de horario en calendario'
     },
     {
@@ -21,7 +56,7 @@ export const QuickActions = () => {
       label: 'Crear cita manual',
       icon: Plus,
       color: 'bg-sage hover:bg-sage/90',
-      action: () => navigate('/reservas?action=create'),
+      action: () => openModal('appointment'),
       ariaLabel: 'Crear nueva cita manualmente'
     },
     {
@@ -29,7 +64,7 @@ export const QuickActions = () => {
       label: 'Enviar mensaje broadcast',
       icon: Send,
       color: 'bg-purple-500 hover:bg-purple-600',
-      action: () => navigate('/chat?action=broadcast'),
+      action: () => openModal('broadcast'),
       ariaLabel: 'Enviar mensaje a múltiples clientes'
     }
   ];
@@ -66,6 +101,25 @@ export const QuickActions = () => {
       <div className="mt-4 text-xs text-gray-500 text-center">
         Accede rápidamente a las funciones más utilizadas
       </div>
+
+      {/* Modales */}
+      <AddAvailabilityModal
+        isOpen={modals.availability}
+        onClose={() => closeModal('availability')}
+        onSave={handleSaveAvailability}
+      />
+      
+      <CreateAppointmentModal
+        isOpen={modals.appointment}
+        onClose={() => closeModal('appointment')}
+        onSave={handleSaveAppointment}
+      />
+      
+      <BroadcastMessageModal
+        isOpen={modals.broadcast}
+        onClose={() => closeModal('broadcast')}
+        onSend={handleSendBroadcast}
+      />
     </Card>
   );
 };

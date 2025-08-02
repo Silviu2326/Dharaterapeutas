@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, XCircle, Clock, FileText, Image, Download } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, FileText, Image, Download, Trash2 } from 'lucide-react';
 
 const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 Bytes';
@@ -49,6 +49,8 @@ const getFileTypeText = (type) => {
 export const FileRow = ({ 
   file, 
   onDownload,
+  onDelete,
+  canDelete = false,
   className = '' 
 }) => {
   const FileIcon = getFileIcon(file.mimeType || 'application/pdf');
@@ -109,16 +111,29 @@ export const FileRow = ({
 
       {/* Actions */}
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-        {onDownload && (
-          <button
-            onClick={() => onDownload(file)}
-            className="text-blue-600 hover:text-blue-900 inline-flex items-center"
-            aria-label={`Descargar ${file.name}`}
-          >
-            <Download className="w-4 h-4 mr-1" aria-hidden="true" />
-            Descargar
-          </button>
-        )}
+        <div className="flex items-center justify-end space-x-2">
+          {onDownload && (
+            <button
+              onClick={() => onDownload(file)}
+              className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+              aria-label={`Descargar ${file.name}`}
+            >
+              <Download className="w-4 h-4 mr-1" aria-hidden="true" />
+              Descargar
+            </button>
+          )}
+          {onDelete && canDelete && (
+            <button
+              onClick={() => onDelete(file.id)}
+              className="text-red-600 hover:text-red-900 inline-flex items-center ml-3"
+              aria-label={`Eliminar ${file.name}`}
+              title="Eliminar archivo"
+            >
+              <Trash2 className="w-4 h-4 mr-1" aria-hidden="true" />
+              Eliminar
+            </button>
+          )}
+        </div>
       </td>
     </tr>
   );

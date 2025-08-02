@@ -142,7 +142,9 @@ export const StorageBar = ({ used = 0, limit = 5368709120, compact = false }) =>
             </div>
           </div>
         </div>
-      )} else if (isNearLimit && (
+      )}
+      
+      {isNearLimit && (
         <div className={`${styles.bgLight} ${styles.border} border rounded-lg p-3 ${
           compact ? 'p-2' : ''
         }`}>

@@ -82,13 +82,13 @@ const getChipStyles = (type, isSelected, compact = false) => {
   return `${baseStyles} ${colorStyles[type.color]}`;
 };
 
-export const TypeChips = ({ selectedTypes = [], onTypesChange, compact = false }) => {
+export const TypeChips = ({ selectedTypes = [], onTypeFilter, compact = false }) => {
   const handleTypeToggle = (typeId) => {
     const newSelectedTypes = selectedTypes.includes(typeId)
       ? selectedTypes.filter(id => id !== typeId)
       : [...selectedTypes, typeId];
     
-    onTypesChange(newSelectedTypes);
+    onTypeFilter(newSelectedTypes);
   };
 
   const clearAllFilters = () => {

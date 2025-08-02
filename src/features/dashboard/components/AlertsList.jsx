@@ -6,13 +6,19 @@ import { useNavigate } from 'react-router-dom';
 export const AlertsList = ({ alerts }) => {
   const navigate = useNavigate();
 
+  // Generar fechas dinámicas
+  const now = new Date();
+  const nextSessionTime = new Date(now.getTime() + 15 * 60 * 1000); // +15 minutos
+  const subscriptionExpiry = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // +3 días
+
   const defaultAlerts = [
     {
       id: 1,
       type: 'appointment',
       priority: 'high',
       message: 'Próxima sesión en 15 minutos',
-      time: '14:45 - María González',
+      time: `${nextSessionTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - Ana Martínez`,
+      clientName: 'Ana Martínez',
       action: () => navigate('/reservas')
     },
     {
@@ -21,6 +27,7 @@ export const AlertsList = ({ alerts }) => {
       priority: 'medium',
       message: 'Documento pendiente de firmar',
       time: 'Consentimiento informado - Juan Pérez',
+      clientName: 'Juan Pérez',
       action: () => navigate('/documentos-materiales')
     },
     {
@@ -28,7 +35,8 @@ export const AlertsList = ({ alerts }) => {
       type: 'subscription',
       priority: 'medium',
       message: 'Suscripción vence en 3 días',
-      time: 'Plan Premium - Renovar antes del 15/01',
+      time: `Plan Premium - Renovar antes del ${subscriptionExpiry.toLocaleDateString('es-ES')}`,
+      clientName: null,
       action: () => navigate('/planes-suscripcion')
     }
   ];

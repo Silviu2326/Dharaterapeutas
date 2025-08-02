@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { X, Plus, Minus } from 'lucide-react';
+import { X, Plus, Minus, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '../../../components/Button';
 
-export const CreatePlanModal = ({ isOpen, onClose, onSave }) => {
+export const CreatePlanModal = ({ isOpen, onClose, onSave, initialData = null, isEditing = false }) => {
   const [formData, setFormData] = useState({
     name: '',
     type: 'ansiedad',
@@ -13,6 +13,34 @@ export const CreatePlanModal = ({ isOpen, onClose, onSave }) => {
     techniques: [''],
     homework: ['']
   });
+
+  // Efecto para cargar datos iniciales cuando se edita
+  React.useEffect(() => {
+    if (isEditing && initialData) {
+      setFormData({
+        name: initialData.name || '',
+        type: initialData.type || 'ansiedad',
+        description: initialData.description || '',
+        duration: initialData.duration || 12,
+        sessionsPerWeek: initialData.sessionsPerWeek || 1,
+        objectives: initialData.objectives?.length ? initialData.objectives : [''],
+        techniques: initialData.techniques?.length ? initialData.techniques : [''],
+        homework: initialData.homework?.length ? initialData.homework : ['']
+      });
+    } else if (!isEditing) {
+      // Reset form when creating new plan
+      setFormData({
+        name: '',
+        type: 'ansiedad',
+        description: '',
+        duration: 12,
+        sessionsPerWeek: 1,
+        objectives: [''],
+        techniques: [''],
+        homework: ['']
+      });
+    }
+  }, [isEditing, initialData, isOpen]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -118,13 +146,29 @@ export const CreatePlanModal = ({ isOpen, onClose, onSave }) => {
     }));
   };
 
+  const moveArrayItem = (field, index, direction) => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= formData[field].length) return;
+    
+    setFormData(prev => {
+      const newArray = [...prev[field]];
+      [newArray[index], newArray[newIndex]] = [newArray[newIndex], newArray[index]];
+      return {
+        ...prev,
+        [field]: newArray
+      };
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Crear Nuevo Plan Terapéutico</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {isEditing ? 'Editar Plan Terapéutico' : 'Crear Nuevo Plan Terapéutico'}
+          </h2>
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -234,6 +278,26 @@ export const CreatePlanModal = ({ isOpen, onClose, onSave }) => {
             </label>
             {formData.objectives.map((objective, index) => (
               <div key={index} className="flex gap-2 mb-2">
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveArrayItem('objectives', index, 'up')}
+                    disabled={index === 0}
+                    className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Mover arriba"
+                  >
+                    <ChevronUp className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveArrayItem('objectives', index, 'down')}
+                    disabled={index === formData.objectives.length - 1}
+                    className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Mover abajo"
+                  >
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={objective}
@@ -270,6 +334,26 @@ export const CreatePlanModal = ({ isOpen, onClose, onSave }) => {
             </label>
             {formData.techniques.map((technique, index) => (
               <div key={index} className="flex gap-2 mb-2">
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveArrayItem('techniques', index, 'up')}
+                    disabled={index === 0}
+                    className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Mover arriba"
+                  >
+                    <ChevronUp className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveArrayItem('techniques', index, 'down')}
+                    disabled={index === formData.techniques.length - 1}
+                    className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Mover abajo"
+                  >
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={technique}
@@ -306,6 +390,26 @@ export const CreatePlanModal = ({ isOpen, onClose, onSave }) => {
             </label>
             {formData.homework.map((hw, index) => (
               <div key={index} className="flex gap-2 mb-2">
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveArrayItem('homework', index, 'up')}
+                    disabled={index === 0}
+                    className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Mover arriba"
+                  >
+                    <ChevronUp className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveArrayItem('homework', index, 'down')}
+                    disabled={index === formData.homework.length - 1}
+                    className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    title="Mover abajo"
+                  >
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={hw}
@@ -354,7 +458,10 @@ export const CreatePlanModal = ({ isOpen, onClose, onSave }) => {
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Creando...' : 'Crear Plan'}
+              {loading 
+                ? (isEditing ? 'Guardando...' : 'Creando...') 
+                : (isEditing ? 'Guardar Cambios' : 'Crear Plan')
+              }
             </Button>
           </div>
         </form>

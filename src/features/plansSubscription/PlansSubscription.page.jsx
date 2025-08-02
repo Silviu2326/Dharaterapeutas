@@ -6,6 +6,7 @@ import { CreatePlanModal } from './components/CreatePlanModal';
 import { PlanCard } from './components/PlanCard';
 import { AssignPlanModal } from './components/AssignPlanModal';
 import { PlanDetailsModal } from './components/PlanDetailsModal';
+import { BookingIntegrationModal } from './components/BookingIntegrationModal';
 
 export const PlansSubscription = () => {
   const [loading, setLoading] = useState(true);
@@ -13,9 +14,13 @@ export const PlansSubscription = () => {
   const [plans, setPlans] = useState([]);
   const [clients, setClients] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [editingPlan, setEditingPlan] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedPlanForBooking, setSelectedPlanForBooking] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -31,7 +36,7 @@ export const PlansSubscription = () => {
       sessionsPerWeek: 2,
       totalSessions: 24,
       status: 'active',
-      createdDate: '2024-01-15',
+      createdDate: '2025-01-15',
       assignedClients: 5,
       objectives: [
         'Reducir niveles de ansiedad',
@@ -60,7 +65,7 @@ export const PlansSubscription = () => {
       sessionsPerWeek: 1,
       totalSessions: 16,
       status: 'active',
-      createdDate: '2024-01-20',
+      createdDate: '2025-01-20',
       assignedClients: 3,
       objectives: [
         'Mejorar comunicación',
@@ -89,7 +94,7 @@ export const PlansSubscription = () => {
       sessionsPerWeek: 2,
       totalSessions: 40,
       status: 'draft',
-      createdDate: '2024-02-01',
+      createdDate: '2025-02-01',
       assignedClients: 0,
       objectives: [
         'Mejorar estado de ánimo',
@@ -119,7 +124,7 @@ export const PlansSubscription = () => {
       phone: '+34 666 123 456',
       assignedPlans: ['plan_1'],
       status: 'active',
-      joinDate: '2024-01-20'
+      joinDate: '2025-01-20'
     },
     {
       id: 'client_2',
@@ -128,7 +133,7 @@ export const PlansSubscription = () => {
       phone: '+34 666 789 012',
       assignedPlans: ['plan_1', 'plan_2'],
       status: 'active',
-      joinDate: '2024-01-25'
+      joinDate: '2025-01-25'
     },
     {
       id: 'client_3',
@@ -137,7 +142,7 @@ export const PlansSubscription = () => {
       phone: '+34 666 345 678',
       assignedPlans: ['plan_2'],
       status: 'active',
-      joinDate: '2024-02-01'
+      joinDate: '2025-02-01'
     }
   ];
 
@@ -186,6 +191,54 @@ export const PlansSubscription = () => {
       console.log('Plan creado exitosamente:', newPlan);
     } catch (error) {
       throw new Error('Error al crear el plan');
+    }
+  };
+
+  const handleClonePlan = async (planToClone) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const clonedPlan = {
+        ...planToClone,
+        id: `plan_${Date.now()}`,
+        name: `${planToClone.name} (Copia)`,
+        status: 'draft',
+        createdDate: new Date().toISOString().split('T')[0],
+        assignedClients: 0
+      };
+      
+      setPlans(prev => [...prev, clonedPlan]);
+      console.log('Plan clonado exitosamente:', clonedPlan);
+    } catch (error) {
+      throw new Error('Error al clonar el plan');
+    }
+  };
+
+  const handleScheduleSessions = (plan) => {
+    setSelectedPlanForBooking(plan);
+    setShowBookingModal(true);
+  };
+
+  const handleEditPlanOpen = (plan) => {
+    setEditingPlan(plan);
+    setShowEditModal(true);
+  };
+
+  const handleEditPlanSave = async (planData) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setPlans(prev => prev.map(plan => 
+        plan.id === editingPlan.id 
+          ? { ...plan, ...planData, totalSessions: planData.duration * planData.sessionsPerWeek }
+          : plan
+      ));
+      
+      setShowEditModal(false);
+      setEditingPlan(null);
+      console.log('Plan actualizado exitosamente');
+    } catch (error) {
+      throw new Error('Error al actualizar el plan');
     }
   };
 
@@ -424,13 +477,15 @@ export const PlansSubscription = () => {
             key={plan.id}
             plan={plan}
             onView={() => handleViewPlanDetails(plan)}
-            onEdit={(planData) => handleEditPlan(plan.id, planData)}
+            onEdit={() => handleEditPlanOpen(plan)}
+            onClone={() => handleClonePlan(plan)}
             onDelete={() => handleDeletePlan(plan.id)}
             onAssign={() => {
               setSelectedPlan(plan);
               setShowAssignModal(true);
             }}
             onActivate={() => handleActivatePlan(plan.id)}
+            onScheduleSessions={() => handleScheduleSessions(plan)}
           />
         ))}
       </div>
@@ -460,6 +515,17 @@ export const PlansSubscription = () => {
         onSave={handleCreatePlan}
       />
 
+      <CreatePlanModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingPlan(null);
+        }}
+        onSave={handleEditPlanSave}
+        initialData={editingPlan}
+        isEditing={true}
+      />
+
       <AssignPlanModal
         isOpen={showAssignModal}
         onClose={() => {
@@ -480,6 +546,16 @@ export const PlansSubscription = () => {
         plan={selectedPlan}
         clients={clients}
       />
+
+      <BookingIntegrationModal
+         isOpen={showBookingModal}
+         onClose={() => {
+           setShowBookingModal(false);
+           setSelectedPlanForBooking(null);
+         }}
+         plan={selectedPlanForBooking}
+         clients={clients}
+       />
     </div>
   );
 };

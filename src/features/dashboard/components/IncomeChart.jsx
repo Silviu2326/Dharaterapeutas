@@ -49,7 +49,8 @@ export const IncomeChart = ({ data }) => {
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: '#6B7280' }}
-              tickFormatter={(value) => `€${value}`}
+              tickFormatter={(value) => `€${value.toLocaleString()}`}
+              label={{ value: 'Ingresos (€)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6B7280', fontSize: '12px' } }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar 

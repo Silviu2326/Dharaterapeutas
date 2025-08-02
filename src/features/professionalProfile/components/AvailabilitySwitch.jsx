@@ -94,34 +94,23 @@ export const AvailabilitySwitch = ({ isAvailable = false, onChange, isEditing = 
           </div>
         </div>
 
-        {/* Banner público preview */}
-        {isAvailable && (
-          <div className="mt-4">
-            <h5 className="text-sm font-medium text-gray-700 mb-2">Vista previa del banner público:</h5>
-            <div className="bg-sage/10 border border-sage/20 rounded-md p-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-sage">Disponible para nuevos clientes</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {isEditing && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+        {/* Información adicional sobre el estado */}
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
           <div className="flex items-start space-x-2">
             <Info className="h-4 w-4 text-blue-600 mt-0.5" />
             <div className="text-sm text-blue-800">
-              <p className="font-medium">Consejo:</p>
-              <p>
-                Mantén tu disponibilidad actualizada para que los clientes sepan si pueden contactarte. 
-                Puedes cambiar este estado en cualquier momento.
-              </p>
+              <p className="font-medium">¿Cómo funciona?</p>
+              <ul className="mt-1 space-y-1 text-blue-700">
+                <li>• <strong>Disponible:</strong> Tu perfil aparece en búsquedas y puedes recibir nuevas solicitudes</li>
+                <li>• <strong>No disponible:</strong> Solo tus clientes actuales pueden acceder a tu perfil</li>
+                <li>• Puedes cambiar este estado en cualquier momento según tu capacidad</li>
+              </ul>
             </div>
           </div>
         </div>
-      )}
+      </div>
+
+
     </div>
   );
 };

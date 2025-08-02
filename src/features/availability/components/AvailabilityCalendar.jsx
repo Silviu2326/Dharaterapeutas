@@ -12,6 +12,10 @@ const MockCalendarGrid = ({
 }) => {
   const [draggedEvent, setDraggedEvent] = useState(null);
   const [dragOver, setDragOver] = useState(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionStart, setSelectionStart] = useState(null);
+  const [selectionEnd, setSelectionEnd] = useState(null);
+  const [selectedSlots, setSelectedSlots] = useState([]);
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const days = view === 'week' 
@@ -35,6 +39,52 @@ const MockCalendarGrid = ({
     }
     setDraggedEvent(null);
     setDragOver(null);
+  };
+
+  const handleMouseDown = (slot) => {
+    setIsSelecting(true);
+    setSelectionStart(slot);
+    setSelectionEnd(slot);
+    setSelectedSlots([slot]);
+  };
+
+  const handleMouseEnter = (slot) => {
+    if (isSelecting && selectionStart) {
+      setSelectionEnd(slot);
+      // Calculate all slots in selection rectangle
+      const startDay = Math.min(selectionStart.day, slot.day);
+      const endDay = Math.max(selectionStart.day, slot.day);
+      const startHour = Math.min(selectionStart.hour, slot.hour);
+      const endHour = Math.max(selectionStart.hour, slot.hour);
+      
+      const newSelectedSlots = [];
+      for (let day = startDay; day <= endDay; day++) {
+        for (let hour = startHour; hour <= endHour; hour++) {
+          newSelectedSlots.push({ day, hour, slotId: `${day}-${hour}` });
+        }
+      }
+      setSelectedSlots(newSelectedSlots);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isSelecting && selectedSlots.length > 0) {
+      // Create availability slot from selection
+      onSelectSlot?.({
+        type: 'multi-slot',
+        slots: selectedSlots,
+        startSlot: selectionStart,
+        endSlot: selectionEnd
+      });
+    }
+    setIsSelecting(false);
+    setSelectionStart(null);
+    setSelectionEnd(null);
+    setSelectedSlots([]);
+  };
+
+  const isSlotSelected = (slot) => {
+    return selectedSlots.some(s => s.day === slot.day && s.hour === slot.hour);
   };
 
   const getEventStyle = (event) => {
@@ -74,15 +124,23 @@ const MockCalendarGrid = ({
               e.day === dayIndex && e.hour === hour
             );
             
+            const currentSlot = { day: dayIndex, hour, slotId };
+            const isSelected = isSlotSelected(currentSlot);
+            
             return (
               <div
                 key={slotId}
                 className={`
-                  border border-gray-200 p-1 min-h-[40px] cursor-pointer
+                  border border-gray-200 p-1 min-h-[40px] cursor-pointer select-none
                   hover:bg-sage/10 transition-colors duration-150
                   ${dragOver === slotId ? 'bg-sage/20' : ''}
+                  ${isSelected ? 'bg-sage/30 border-sage border-2' : ''}
+                  ${isSelecting ? 'cursor-crosshair' : 'cursor-pointer'}
                 `}
-                onClick={() => onSelectSlot?.({ day: dayIndex, hour, slotId })}
+                onClick={() => !isSelecting && onSelectSlot?.({ day: dayIndex, hour, slotId })}
+                onMouseDown={() => handleMouseDown(currentSlot)}
+                onMouseEnter={() => handleMouseEnter(currentSlot)}
+                onMouseUp={handleMouseUp}
                 onDragOver={(e) => handleDragOver(e, slotId)}
                 onDrop={(e) => handleDrop(e, { day: dayIndex, hour, slotId })}
               >
@@ -160,9 +218,28 @@ const MockCalendarGrid = ({
     </div>
   );
 
+  // Add global mouse up event listener
+  React.useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isSelecting) {
+        handleMouseUp();
+      }
+    };
+    
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [isSelecting]);
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       {view === 'week' ? renderWeekView() : renderMonthView()}
+      
+      {/* Selection instructions */}
+      {isSelecting && (
+        <div className="absolute top-2 left-2 bg-sage text-white px-3 py-1 rounded-md text-sm font-medium shadow-lg z-10">
+          Arrastra para seleccionar múltiples bloques
+        </div>
+      )}
     </div>
   );
 };
@@ -265,7 +342,11 @@ export const AvailabilityCalendar = ({
         </div>
         <div className="flex items-center space-x-2">
           <Users className="h-3 w-3" />
-          <span>Arrastra los bloques para reorganizar tu horario</span>
+          <span>Mantén presionado y arrastra para seleccionar múltiples bloques</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Clock className="h-3 w-3" />
+          <span>Arrastra los bloques existentes para reorganizar tu horario</span>
         </div>
         <div className="flex items-center space-x-2">
           <Clock className="h-3 w-3" />

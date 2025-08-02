@@ -2,11 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon, UserIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useClients } from '../hooks/useClients';
 
-export const ClientSelect = ({ selectedClient, onClientChange, compact = false }) => {
+export const ClientSelect = ({ clients = [], selectedClient, onClientSelect, compact = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef(null);
-  const { clients, loading } = useClients();
+  const loading = false;
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -26,7 +26,7 @@ export const ClientSelect = ({ selectedClient, onClientChange, compact = false }
   }, []);
 
   const handleClientSelect = (client) => {
-    onClientChange(client);
+    onClientSelect(client);
     setIsOpen(false);
     setSearchTerm('');
   };

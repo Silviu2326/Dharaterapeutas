@@ -4,7 +4,7 @@ import { useRecentSearches } from '../../../hooks/useRecentSearches';
 
 export const SearchBar = ({ 
   searchTerm, 
-  onSearchChange, 
+  onSearch, 
   placeholder = "Buscar documentos...", 
   compact = false 
 }) => {
@@ -42,7 +42,7 @@ export const SearchBar = ({
 
   const handleInputChange = (e) => {
     const value = e.target.value;
-    onSearchChange(value);
+    onSearch(value);
     setShowSuggestions(true);
   };
 

@@ -59,24 +59,36 @@ const ActionButton = ({
 };
 
 export const SidebarActions = ({ 
-  onNewBlock,
+  onCreateSlot,
+  onCreateAbsence,
   onCopyLastWeek,
-  onToggleSync,
-  isSyncEnabled = false,
-  syncLoading = false,
-  copyLoading = false,
+  onSyncGoogle,
+  onOpenSyncModal,
+  syncStatus = 'disconnected',
+  loading = false,
+  availabilitySlots = [],
+  appointments = [],
+  absences = [],
   isDrawer = false,
   onClose,
   className = '' 
 }) => {
   const actions = [
     {
-      id: 'new-block',
+      id: 'new-availability',
       icon: Plus,
       label: 'Nuevo bloque',
       description: 'Crear disponibilidad',
-      onClick: onNewBlock,
+      onClick: onCreateSlot,
       variant: 'primary'
+    },
+    {
+      id: 'new-absence',
+      icon: X,
+      label: 'Marcar ausencia',
+      description: 'Bloquear tiempo',
+      onClick: onCreateAbsence,
+      variant: 'outline'
     },
     {
       id: 'copy-week',
@@ -85,18 +97,34 @@ export const SidebarActions = ({
       description: 'Duplicar horarios anteriores',
       onClick: onCopyLastWeek,
       variant: 'secondary',
-      loading: copyLoading
+      loading: loading
     },
     {
       id: 'sync-calendar',
       icon: RefreshCw,
-      label: isSyncEnabled ? 'Desconectar Google Calendar' : 'Sincronizar Google Calendar',
-      description: isSyncEnabled ? 'Desactivar sincronización' : 'Conectar con Google Calendar',
-      onClick: onToggleSync,
-      variant: isSyncEnabled ? 'outline' : 'secondary',
-      loading: syncLoading
+      label: 'Sincronizar calendarios',
+      description: 'Conectar calendarios externos',
+      onClick: onOpenSyncModal,
+      variant: 'secondary'
     }
   ];
+
+  // Calcular estadísticas
+  const totalAvailableHours = availabilitySlots.reduce((sum, slot) => {
+    const start = new Date(`2024-01-01T${slot.startTime}`);
+    const end = new Date(`2024-01-01T${slot.endTime}`);
+    return sum + (end - start) / (1000 * 60 * 60);
+  }, 0);
+
+  const totalBookedHours = appointments.reduce((sum, apt) => {
+    const start = new Date(`2024-01-01T${apt.startTime}`);
+    const end = new Date(`2024-01-01T${apt.endTime}`);
+    return sum + (end - start) / (1000 * 60 * 60);
+  }, 0);
+
+  const occupancyPercentage = totalAvailableHours > 0 
+    ? Math.round((totalBookedHours / totalAvailableHours) * 100) 
+    : 0;
 
   return (
     <div className={`
@@ -158,26 +186,49 @@ export const SidebarActions = ({
         
         {/* Quick Stats */}
         <div className="border-t border-gray-200 p-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">Esta semana</h4>
+          <h4 className="text-sm font-medium text-gray-900 mb-3">Resumen actual</h4>
           <div className="space-y-2 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-gray-600 flex items-center">
                 <Calendar className="h-4 w-4 mr-1" />
                 Bloques disponibles
               </span>
-              <span className="font-medium text-sage">12</span>
+              <span className="font-medium text-sage">{availabilitySlots.length}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-600 flex items-center">
                 <Clock className="h-4 w-4 mr-1" />
-                Horas totales
+                Horas disponibles
               </span>
-              <span className="font-medium text-deep">24h</span>
+              <span className="font-medium text-sage">{Math.round(totalAvailableHours)}h</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                Horas reservadas
+              </span>
+              <span className="font-medium text-deep">{Math.round(totalBookedHours)}h</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Ocupación</span>
-              <span className="font-medium text-gray-900">65%</span>
+              <span className={`font-medium ${
+                occupancyPercentage >= 75 ? 'text-red-600' :
+                occupancyPercentage >= 50 ? 'text-yellow-600' :
+                occupancyPercentage >= 25 ? 'text-green-600' :
+                'text-gray-600'
+              }`}>
+                {occupancyPercentage}%
+              </span>
             </div>
+            {syncStatus === 'connected' && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 flex items-center">
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Sincronización
+                </span>
+                <span className="font-medium text-green-600">Activa</span>
+              </div>
+            )}
           </div>
         </div>
         

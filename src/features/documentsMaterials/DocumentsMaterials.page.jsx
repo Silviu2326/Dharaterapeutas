@@ -6,6 +6,7 @@ import { UploadFormModal } from './components/UploadFormModal';
 import { DocumentsTable } from './components/DocumentsTable';
 import { BulkToolbar } from './components/BulkToolbar';
 import { PreviewModal } from './components/PreviewModal';
+import { EditDocumentModal } from './components/EditDocumentModal';
 import { ErrorBoundary, EmptyDocuments, ErrorState, Loader } from './components/StateComponents';
 
 // Mock data para desarrollo
@@ -19,7 +20,7 @@ const mockDocuments = [
     client: { id: '1', name: 'Ana García', avatar: null },
     session: 'Sesión #3',
     tags: ['ejercicios', 'ansiedad'],
-    createdAt: new Date('2024-01-15'),
+    createdAt: new Date(),
     url: '/documents/ejercicios-respiracion.pdf'
   },
   {
@@ -31,7 +32,7 @@ const mockDocuments = [
     client: { id: '2', name: 'Carlos López', avatar: null },
     session: 'Sesión #1',
     tags: ['relajación', 'audio'],
-    createdAt: new Date('2024-01-14'),
+    createdAt: new Date(Date.now() - 86400000), // 1 día atrás
     url: '/documents/relajacion-muscular.mp3'
   },
   {
@@ -43,7 +44,7 @@ const mockDocuments = [
     client: null,
     session: null,
     tags: ['emociones', 'diagrama'],
-    createdAt: new Date('2024-01-13'),
+    createdAt: new Date(Date.now() - 172800000), // 2 días atrás
     url: '/documents/diagrama-emociones.png'
   }
 ];
@@ -63,6 +64,7 @@ export const DocumentsMaterials = () => {
   const [selectedDocuments, setSelectedDocuments] = useState([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [previewDocument, setPreviewDocument] = useState(null);
+  const [editDocument, setEditDocument] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -167,6 +169,17 @@ export const DocumentsMaterials = () => {
     alert(`Reenviando ${document.title} a ${document.client?.name}`);
   };
 
+  const handleEdit = (document) => {
+    setEditDocument(document);
+  };
+
+  const handleSaveEdit = (updatedDocument) => {
+    setDocuments(prev => prev.map(doc => 
+      doc.id === updatedDocument.id ? updatedDocument : doc
+    ));
+    setEditDocument(null);
+  };
+
   const handleDelete = (document) => {
     if (confirm(`¿Estás seguro de que quieres eliminar "${document.title}"?`)) {
       setDocuments(prev => prev.filter(doc => doc.id !== document.id));
@@ -229,6 +242,8 @@ export const DocumentsMaterials = () => {
           selectedTypes={selectedTypes}
           onTypeFilter={handleTypeFilter}
           documents={documents}
+          storageUsed={documents.reduce((total, doc) => total + (doc.size || 0), 0)}
+          storageLimit={5368709120}
         />
 
         {/* Zona de subida */}
@@ -277,6 +292,7 @@ export const DocumentsMaterials = () => {
               onPreview={handlePreview}
               onDownload={handleDownload}
               onResend={handleResend}
+              onEdit={handleEdit}
               onDelete={handleDelete}
             />
           )}
@@ -299,6 +315,14 @@ export const DocumentsMaterials = () => {
           onDownload={handleDownload}
           onResend={handleResend}
           onDelete={handleDelete}
+        />
+
+        <EditDocumentModal
+          isOpen={!!editDocument}
+          onClose={() => setEditDocument(null)}
+          document={editDocument}
+          clients={mockClients}
+          onSave={handleSaveEdit}
         />
       </div>
     </ErrorBoundary>

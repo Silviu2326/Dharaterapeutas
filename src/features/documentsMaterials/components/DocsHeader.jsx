@@ -6,15 +6,16 @@ import { TypeChips } from './TypeChips';
 import { StorageBar } from './StorageBar';
 
 export const DocsHeader = ({
+  clients,
   selectedClient,
-  onClientChange,
+  onClientSelect,
   searchTerm,
-  onSearchChange,
+  onSearch,
   selectedTypes,
-  onTypesChange,
-  storageUsed,
-  storageLimit,
-  onUpload
+  onTypeFilter,
+  documents,
+  storageUsed = 0,
+  storageLimit = 5368709120
 }) => {
   const [showFilters, setShowFilters] = useState(false);
 
@@ -24,15 +25,16 @@ export const DocsHeader = ({
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1 lg:max-w-xs">
           <ClientSelect
+            clients={clients}
             selectedClient={selectedClient}
-            onClientChange={onClientChange}
+            onClientSelect={onClientSelect}
           />
         </div>
         
         <div className="flex-1">
           <SearchBar
             searchTerm={searchTerm}
-            onSearchChange={onSearchChange}
+            onSearch={onSearch}
             placeholder="Buscar por título, etiqueta o tipo..."
           />
         </div>
@@ -50,7 +52,7 @@ export const DocsHeader = ({
           </button>
           
           <button
-            onClick={onUpload}
+            onClick={() => {}}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             Subir archivo
@@ -63,7 +65,7 @@ export const DocsHeader = ({
         <div className="border-t pt-4">
           <TypeChips
             selectedTypes={selectedTypes}
-            onTypesChange={onTypesChange}
+            onTypeFilter={onTypeFilter}
           />
         </div>
       )}

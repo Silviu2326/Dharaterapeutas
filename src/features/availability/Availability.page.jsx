@@ -5,6 +5,7 @@ import { AvailabilityCalendar } from './components/AvailabilityCalendar';
 import { SidebarActions } from './components/SidebarActions';
 import { SlotModal } from './components/SlotModal';
 import { AbsenceModal } from './components/AbsenceModal';
+import { SyncModal } from './components/SyncModal';
 import { OccupancyBar } from './components/OccupancyBar';
 import { AlertTriangle, Loader } from 'lucide-react';
 
@@ -68,14 +69,17 @@ const mockAbsences = [
 ];
 
 const mockWeekOccupancy = [
-  { occupancy: 75, availableHours: 6, bookedHours: 6 }, // Monday
-  { occupancy: 60, availableHours: 8, bookedHours: 5 }, // Tuesday
-  { occupancy: 90, availableHours: 2, bookedHours: 8 }, // Wednesday
-  { occupancy: 45, availableHours: 7, bookedHours: 4 }, // Thursday
-  { occupancy: 80, availableHours: 4, bookedHours: 7 }, // Friday
-  { occupancy: 30, availableHours: 5, bookedHours: 2 }, // Saturday
-  { occupancy: 15, availableHours: 6, bookedHours: 1 }  // Sunday
+  { availableHours: 2, bookedHours: 6 }, // Monday - 75% ocupación
+  { availableHours: 5, bookedHours: 8 }, // Tuesday - 62% ocupación
+  { availableHours: 1, bookedHours: 9 }, // Wednesday - 90% ocupación
+  { availableHours: 7, bookedHours: 4 }, // Thursday - 36% ocupación
+  { availableHours: 3, bookedHours: 9 }, // Friday - 75% ocupación
+  { availableHours: 5, bookedHours: 2 }, // Saturday - 29% ocupación
+  { availableHours: 6, bookedHours: 1 }  // Sunday - 14% ocupación
 ];
+
+// Total: 29h disponibles + 39h reservadas = 68h totales
+// Ocupación promedio: 57%
 
 export const Availability = () => {
   // State management
@@ -89,8 +93,10 @@ export const Availability = () => {
   // Modal states
   const [isSlotModalOpen, setIsSlotModalOpen] = useState(false);
   const [isAbsenceModalOpen, setIsAbsenceModalOpen] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState(null);
   const [editingAbsence, setEditingAbsence] = useState(null);
+  const [selectedSlots, setSelectedSlots] = useState([]);
   
   // Loading and error states
   const [loading, setLoading] = useState(false);
@@ -182,17 +188,38 @@ export const Availability = () => {
     }
   };
 
+  const handleOpenSyncModal = () => {
+    setIsSyncModalOpen(true);
+  };
+
+  const handleSyncSettings = async (syncData) => {
+    setLoading(true);
+    try {
+      // Simular guardado de configuración de sincronización
+      console.log('Sync settings saved:', syncData);
+      setSyncStatus('connected');
+      setIsSyncModalOpen(false);
+      setError(null);
+    } catch (err) {
+      setError('Error al configurar la sincronización');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCopyLastWeek = async () => {
     setLoading(true);
     try {
-      // Mock copying last week's schedule
+      // Simular copia de la semana anterior
       const newSlots = availabilitySlots.map(slot => ({
         ...slot,
-        id: `slot_copy_${Date.now()}_${Math.random()}`,
+        id: `slot_${Date.now()}_${Math.random()}`,
         startDate: new Date(new Date(slot.startDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         endDate: new Date(new Date(slot.endDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       }));
+      
       setAvailabilitySlots(prev => [...prev, ...newSlots]);
+      setError(null);
     } catch (err) {
       setError('Error al copiar la semana anterior');
     } finally {
@@ -202,13 +229,15 @@ export const Availability = () => {
 
   const handleSyncGoogle = async () => {
     setLoading(true);
-    setSyncStatus('syncing');
     try {
-      // Mock Google Calendar sync
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setSyncStatus('connected');
+      // Simular sincronización con Google Calendar
+      if (syncStatus === 'connected') {
+        setSyncStatus('disconnected');
+      } else {
+        setSyncStatus('connected');
+      }
+      setError(null);
     } catch (err) {
-      setSyncStatus('error');
       setError('Error al sincronizar con Google Calendar');
     } finally {
       setLoading(false);
@@ -283,6 +312,7 @@ export const Availability = () => {
             onCreateAbsence={handleCreateAbsence}
             onCopyLastWeek={handleCopyLastWeek}
             onSyncGoogle={handleSyncGoogle}
+            onOpenSyncModal={handleOpenSyncModal}
             syncStatus={syncStatus}
             loading={loading}
             availabilitySlots={availabilitySlots}
@@ -311,6 +341,8 @@ export const Availability = () => {
                 onDateChange={setSelectedDate}
                 onEventClick={handleCalendarEventClick}
                 onSlotSelect={handleCalendarSlotSelect}
+                selectedSlots={selectedSlots}
+                onSelectedSlotsChange={setSelectedSlots}
                 timezone={selectedTimezone}
                 loading={loading}
               />
@@ -325,9 +357,12 @@ export const Availability = () => {
         onClose={() => {
           setIsSlotModalOpen(false);
           setEditingSlot(null);
+          setSelectedSlots([]);
         }}
         onSave={handleSaveSlot}
         slot={editingSlot}
+        selectedSlots={selectedSlots}
+        mode={editingSlot ? 'edit' : selectedSlots.length > 1 ? 'bulk' : 'create'}
         existingSlots={availabilitySlots}
         existingAppointments={appointments}
         defaultTimezone={selectedTimezone}
@@ -342,8 +377,17 @@ export const Availability = () => {
         }}
         onSave={handleSaveAbsence}
         absence={editingAbsence}
+        mode={editingAbsence ? 'edit' : 'create'}
         existingAppointments={appointments}
         defaultTimezone={selectedTimezone}
+        loading={loading}
+      />
+
+      <SyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        onSave={handleSyncSettings}
+        syncStatus={syncStatus}
         loading={loading}
       />
 

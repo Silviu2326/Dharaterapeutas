@@ -19,6 +19,7 @@ export const ClientsTable = ({
   onNewBookingClick,
   onUploadDocClick,
   onDeleteClick,
+  onViewClientDrawer,
   sortBy,
   sortOrder,
   onSort
@@ -137,6 +138,7 @@ export const ClientsTable = ({
                   onNewBookingClick={() => onNewBookingClick?.(client)}
                   onUploadDocClick={() => onUploadDocClick?.(client)}
                   onDeleteClick={() => onDeleteClick?.(client)}
+                  onViewDrawer={() => onViewClientDrawer && onViewClientDrawer(client)}
                   variant="desktop"
                 />
               ))}
@@ -176,6 +178,7 @@ export const ClientsTable = ({
               onNewBookingClick={() => onNewBookingClick?.(client)}
               onUploadDocClick={() => onUploadDocClick?.(client)}
               onDeleteClick={() => onDeleteClick?.(client)}
+              onViewDrawer={() => onViewClientDrawer && onViewClientDrawer(client)}
               variant="mobile"
             />
           ))}

@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Shield, Upload, AlertCircle } from 'lucide-react';
 import { FileThumbnail } from './FileThumbnail';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
 const validateFile = (file) => {
@@ -13,7 +13,7 @@ const validateFile = (file) => {
   }
   
   if (file.size > MAX_FILE_SIZE) {
-    errors.push('El archivo es demasiado grande. Máximo 5MB.');
+    errors.push('El archivo es demasiado grande. Máximo 10MB.');
   }
   
   return errors;

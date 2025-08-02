@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Edit, Trash2, Users, Calendar, Clock, Target, MoreVertical, Play } from 'lucide-react';
+import { Eye, Edit, Trash2, Users, Calendar, Clock, Target, MoreVertical, Play, Copy } from 'lucide-react';
 import { Button } from '../../../components/Button';
 
 const getStatusColor = (status) => {
@@ -61,6 +61,8 @@ export const PlanCard = ({
   onDelete,
   onAssign,
   onActivate,
+  onClone,
+  onScheduleSessions,
   className = '' 
 }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -115,6 +117,38 @@ export const PlanCard = ({
                   <Users className="w-4 h-4" />
                   Asignar clientes
                 </button>
+                <button
+                  onClick={() => {
+                    onEdit(plan);
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  Editar plan
+                </button>
+                <button
+                  onClick={() => {
+                    onClone && onClone(plan);
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Copy className="w-4 h-4" />
+                  Clonar plan
+                </button>
+                {plan.status === 'active' && (
+                  <button
+                    onClick={() => {
+                      onScheduleSessions && onScheduleSessions(plan);
+                      setShowMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-blue-700 hover:bg-blue-50 flex items-center gap-2"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Programar sesiones
+                  </button>
+                )}
                 {plan.status === 'draft' && (
                   <button
                     onClick={() => {
