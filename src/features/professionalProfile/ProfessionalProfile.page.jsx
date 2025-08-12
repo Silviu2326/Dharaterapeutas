@@ -34,10 +34,12 @@ export const ProfessionalProfile = () => {
     therapies: [],
     credentials: [],
     rates: {
-      sessionPrice: '',
-      packagePrice: '',
-      currency: 'EUR'
-    },
+            sessionPrice: '',
+            followUpPrice: '',
+            packagePrice: '',
+            coupleSessionPrice: '',
+            currency: 'EUR'
+      },
     isAvailable: true,
     legalInfo: {
       licenses: [],
@@ -98,7 +100,9 @@ export const ProfessionalProfile = () => {
           ],
           rates: {
             sessionPrice: '80',
+            followUpPrice: '60',
             packagePrice: '300',
+            coupleSessionPrice: '120',
             currency: 'EUR'
           },
           isAvailable: true,

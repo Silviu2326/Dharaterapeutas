@@ -13,7 +13,9 @@ const CURRENCIES = [
 export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
   const [formData, setFormData] = useState({
     sessionPrice: '',
+    followUpPrice: '',
     packagePrice: '',
+    coupleSessionPrice: '',
     currency: 'EUR'
   });
   const [errors, setErrors] = useState({});
@@ -21,7 +23,9 @@ export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
   useEffect(() => {
     setFormData({
       sessionPrice: rates.sessionPrice || '',
+      followUpPrice: rates.followUpPrice || '',
       packagePrice: rates.packagePrice || '',
+      coupleSessionPrice: rates.coupleSessionPrice || '',
       currency: rates.currency || 'EUR'
     });
   }, [rates]);
@@ -45,7 +49,7 @@ export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
 
   const handleInputChange = (field, value) => {
     // Para precios, permitir solo números y punto decimal
-    if (field === 'sessionPrice' || field === 'packagePrice') {
+    if (['sessionPrice','followUpPrice','packagePrice','coupleSessionPrice'].includes(field)) {
       // Permitir números, punto decimal y vacío
       if (value !== '' && !/^\d*\.?\d*$/.test(value)) {
         return;
@@ -76,6 +80,24 @@ export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
       }
     }
     
+    if (field === 'followUpPrice') {
+      const error = validatePrice(value, 'El precio de seguimiento');
+      if (error) {
+        newErrors.followUpPrice = error;
+      } else {
+        delete newErrors.followUpPrice;
+      }
+    }
+
+    if (field === 'coupleSessionPrice') {
+      const error = validatePrice(value, 'El precio de pareja');
+      if (error) {
+        newErrors.coupleSessionPrice = error;
+      } else {
+        delete newErrors.coupleSessionPrice;
+      }
+    }
+
     setErrors(newErrors);
 
     // Notificar cambios al componente padre
@@ -116,7 +138,21 @@ export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
               )}
             </div>
           </div>
-          
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center space-x-2 mb-2">
+              <DollarSign className="h-4 w-4 text-sage" />
+              <span className="text-sm font-medium text-gray-700">Sesión de seguimiento (30 min)</span>
+            </div>
+            <div className="text-2xl font-bold text-deep">
+              {formData.followUpPrice ? (
+                `${currencySymbol}${formatDisplayPrice(formData.followUpPrice)}`
+              ) : (
+                <span className="text-gray-400 text-base">No definido</span>
+              )}
+            </div>
+          </div>
+
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center space-x-2 mb-2">
               <Package className="h-4 w-4 text-sage" />
@@ -134,6 +170,29 @@ export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
                 Ahorro: {currencySymbol}{formatDisplayPrice((parseFloat(formData.sessionPrice) * 4 - parseFloat(formData.packagePrice)).toFixed(2))}
               </div>
             )}
+            {formData.coupleSessionPrice && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Sesión de pareja:</span>
+                <span className="font-semibold text-deep">
+                  {currencySymbol}{formatDisplayPrice(formData.coupleSessionPrice)}
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {/* Precio pareja */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center space-x-2 mb-2">
+              <DollarSign className="h-4 w-4 text-sage" />
+              <span className="text-sm font-medium text-gray-700">Sesión de pareja</span>
+            </div>
+            <div className="text-2xl font-bold text-deep">
+              {formData.coupleSessionPrice ? (
+                `${currencySymbol}${formatDisplayPrice(formData.coupleSessionPrice)}`
+              ) : (
+                <span className="text-gray-400 text-base">No definido</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -147,7 +206,7 @@ export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
         <h3 className="text-lg font-semibold text-deep">Tarifas</h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Moneda */}
         <div>
           <label htmlFor="currency-select" className="block text-sm font-medium text-gray-700 mb-1">
@@ -195,6 +254,34 @@ export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
           )}
         </div>
 
+        {/* Precio seguimiento */}
+        <div>
+          <label htmlFor="followup-price" className="block text-sm font-medium text-gray-700 mb-1">
+            Sesión de seguimiento (30 min)
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              {currencySymbol}
+            </span>
+            <input
+              id="followup-price"
+              type="text"
+              value={formData.followUpPrice}
+              onChange={(e) => handleInputChange('followUpPrice', e.target.value)}
+              placeholder="0.00"
+              className={`
+                w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-sage focus:border-transparent
+                ${errors.followUpPrice ? 'border-red-300' : 'border-gray-300'}
+              `}
+              aria-invalid={!!errors.followUpPrice}
+              aria-describedby={errors.followUpPrice ? 'followup-price-error' : undefined}
+            />
+          </div>
+          {errors.followUpPrice && (
+            <p id="followup-price-error" className="text-red-600 text-sm mt-1">{errors.followUpPrice}</p>
+          )}
+        </div>
+
         {/* Precio pack */}
         <div>
           <label htmlFor="package-price" className="block text-sm font-medium text-gray-700 mb-1">
@@ -225,7 +312,7 @@ export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
       </div>
 
       {/* Vista previa */}
-      {(formData.sessionPrice || formData.packagePrice) && (
+      {(formData.sessionPrice || formData.followUpPrice || formData.packagePrice || formData.coupleSessionPrice) && (
         <div className="bg-gray-50 p-4 rounded-lg">
           <h4 className="text-sm font-medium text-gray-700 mb-3">Vista previa de tarifas</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -234,6 +321,14 @@ export const RatesForm = ({ rates = {}, onChange, isEditing = false }) => {
                 <span className="text-sm text-gray-600">Sesión individual:</span>
                 <span className="font-semibold text-deep">
                   {currencySymbol}{formatDisplayPrice(formData.sessionPrice)}
+                </span>
+              </div>
+            )}
+            {formData.followUpPrice && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Sesión de seguimiento:</span>
+                <span className="font-semibold text-deep">
+                  {currencySymbol}{formatDisplayPrice(formData.followUpPrice)}
                 </span>
               </div>
             )}
