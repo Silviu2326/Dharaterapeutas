@@ -292,3 +292,37 @@ export const updatePaymentMethod = async (paymentMethodData) => {
     message: 'Método de pago actualizado correctamente'
   };
 };
+
+export const createPayment = async (paymentData) => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Generate a new payment ID
+  const newId = `PAY-${new Date().getFullYear()}-${String(mockPayments.length + 1).padStart(3, '0')}`;
+  
+  // Create new payment object
+  const newPayment = {
+    id: newId,
+    date: new Date().toISOString(),
+    clientName: paymentData.clientName,
+    clientEmail: paymentData.clientEmail,
+    concept: paymentData.description,
+    amount: paymentData.amount,
+    fee: paymentData.amount * 0.03, // 3% fee
+    method: paymentData.paymentMethod,
+    status: 'pending',
+    transactionId: `txn_${Date.now()}`,
+    taxRate: 0.21,
+    currency: paymentData.currency || 'EUR',
+    dueDate: paymentData.dueDate
+  };
+  
+  // Add to mock data (in a real app, this would be sent to the server)
+  mockPayments.unshift(newPayment);
+  
+  return {
+    success: true,
+    message: 'Cobro creado correctamente',
+    payment: newPayment
+  };
+};

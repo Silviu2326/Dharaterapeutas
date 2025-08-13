@@ -15,6 +15,12 @@ import { LegalInfo } from './components/LegalInfo';
 import { PublicPreviewModal } from './components/PublicPreviewModal';
 import { PersonalStats } from './components/PersonalStats';
 import { HeaderActions, SaveStatus } from './components/HeaderActions';
+import { WorkLocationsManager } from './components/WorkLocationsManager';
+import { VideoPresentation } from './components/VideoPresentation';
+import { ExternalLinks } from './components/ExternalLinks';
+import { FeaturedTestimonials } from './components/FeaturedTestimonials';
+import { WorkExperience } from './components/WorkExperience';
+import { PricingPackages } from './components/PricingPackages';
 
 export const ProfessionalProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +39,12 @@ export const ProfessionalProfile = () => {
     about: '',
     therapies: [],
     credentials: [],
+    workLocations: [],
+    videoPresentation: null,
+    externalLinks: [],
+    featuredTestimonials: [],
+    workExperience: [],
+    pricingPackages: { packages: [], coupons: [] },
     rates: {
             sessionPrice: '',
             followUpPrice: '',
@@ -82,6 +94,167 @@ export const ProfessionalProfile = () => {
           name: 'Dr. María González',
           about: 'Psicóloga clínica especializada en **terapia cognitivo-conductual** y **EMDR**. Con más de 8 años de experiencia ayudando a personas a superar traumas, ansiedad y depresión.\n\nMi enfoque se centra en crear un espacio seguro donde puedas explorar tus emociones y desarrollar herramientas prácticas para el bienestar mental.',
           therapies: ['Terapia Cognitivo-Conductual (CBT)', 'EMDR', 'Mindfulness', 'Terapia de Pareja'],
+          workLocations: [
+            {
+              id: 1,
+              name: 'Centro de Psicología Valencia',
+              address: 'Calle Colón, 45, 3º B',
+              city: 'Valencia',
+              postalCode: '46004',
+              phone: '+34 963 123 456',
+              email: 'valencia@centropsicologia.com',
+              isPrimary: true,
+              schedule: {
+                monday: { enabled: true, start: '09:00', end: '17:00' },
+                tuesday: { enabled: true, start: '09:00', end: '17:00' },
+                wednesday: { enabled: false, start: '09:00', end: '17:00' },
+                thursday: { enabled: false, start: '09:00', end: '17:00' },
+                friday: { enabled: false, start: '09:00', end: '17:00' },
+                saturday: { enabled: false, start: '09:00', end: '14:00' },
+                sunday: { enabled: false, start: '09:00', end: '14:00' }
+              }
+            },
+            {
+              id: 2,
+              name: 'Clínica La Pobla',
+              address: 'Avenida de la Constitución, 12',
+              city: 'La Pobla de Vallbona',
+              postalCode: '46185',
+              phone: '+34 962 654 321',
+              email: 'lapobla@clinicapsicologia.com',
+              isPrimary: false,
+              schedule: {
+                monday: { enabled: false, start: '09:00', end: '17:00' },
+                tuesday: { enabled: false, start: '09:00', end: '17:00' },
+                wednesday: { enabled: true, start: '10:00', end: '18:00' },
+                thursday: { enabled: true, start: '10:00', end: '18:00' },
+                friday: { enabled: true, start: '10:00', end: '18:00' },
+                saturday: { enabled: false, start: '09:00', end: '14:00' },
+                sunday: { enabled: false, start: '09:00', end: '14:00' }
+              }
+            }
+          ],
+          videoPresentation: {
+            url: null,
+            title: 'Presentación Personal',
+            description: 'Conoce un poco más sobre mi enfoque terapéutico'
+          },
+          externalLinks: [
+            {
+              id: 1,
+              type: 'website',
+              label: 'Mi Sitio Web',
+              url: 'https://www.ejemplo-psicologo.com',
+              isVisible: true
+            },
+            {
+              id: 2,
+              type: 'linkedin',
+              label: 'LinkedIn Profesional',
+              url: 'https://linkedin.com/in/ejemplo-psicologo',
+              isVisible: true
+            }
+          ],
+          featuredTestimonials: [1, 3, 5],
+          workExperience: [
+            {
+              id: 1,
+              position: 'Psicólogo Clínico Senior',
+              company: 'Centro de Salud Mental Integral',
+              location: 'Madrid, España',
+              startDate: '2020-03-01',
+              endDate: null,
+              isCurrent: true,
+              description: 'Especialización en terapia cognitivo-conductual para trastornos de ansiedad y depresión. Coordinación de equipo multidisciplinar.',
+              achievements: [
+                'Implementación de nuevos protocolos de evaluación',
+                'Reducción del 30% en tiempo de tratamiento promedio',
+                'Formación de 15 psicólogos junior'
+              ]
+            },
+            {
+              id: 2,
+              position: 'Psicólogo Clínico',
+              company: 'Clínica Privada Bienestar',
+              location: 'Barcelona, España',
+              startDate: '2017-09-01',
+              endDate: '2020-02-28',
+              isCurrent: false,
+              description: 'Atención individual y grupal en terapia de pareja y familiar. Especialización en trastornos del estado de ánimo.',
+              achievements: [
+                'Desarrollo de programa de terapia grupal',
+                'Satisfacción del cliente superior al 95%',
+                'Publicación de 3 artículos en revistas especializadas'
+              ]
+            }
+          ],
+          pricingPackages: {
+            packages: [
+              {
+                id: 1,
+                name: 'Bono 5 Sesiones',
+                description: 'Paquete ideal para tratamientos a medio plazo con descuento especial',
+                sessions: 5,
+                originalPrice: 400,
+                discountedPrice: 350,
+                validityDays: 90,
+                isActive: true,
+                features: [
+                  'Sesiones de 60 minutos',
+                  'Flexibilidad de horarios',
+                  'Material de apoyo incluido',
+                  'Seguimiento entre sesiones'
+                ]
+              },
+              {
+                id: 2,
+                name: 'Programa Intensivo',
+                description: 'Tratamiento completo con máximo ahorro y beneficios adicionales',
+                sessions: 10,
+                originalPrice: 800,
+                discountedPrice: 650,
+                validityDays: 120,
+                isActive: true,
+                features: [
+                  'Sesiones de 60 minutos',
+                  'Evaluación inicial gratuita',
+                  'Plan de tratamiento personalizado',
+                  'Acceso a recursos online',
+                  'Sesión de seguimiento gratuita'
+                ]
+              }
+            ],
+            coupons: [
+              {
+                id: 1,
+                code: 'NUEVOCLIENTE20',
+                description: 'Descuento especial para nuevos clientes',
+                discountType: 'percentage',
+                discountValue: 20,
+                minAmount: 80,
+                maxUses: 50,
+                usedCount: 12,
+                validFrom: '2024-01-01',
+                validUntil: '2024-12-31',
+                isActive: true,
+                applicableServices: ['individual', 'couple']
+              },
+              {
+                id: 2,
+                code: 'VERANO2024',
+                description: 'Promoción especial de verano',
+                discountType: 'fixed',
+                discountValue: 25,
+                minAmount: 100,
+                maxUses: 30,
+                usedCount: 8,
+                validFrom: '2024-06-01',
+                validUntil: '2024-09-30',
+                isActive: true,
+                applicableServices: ['package']
+              }
+            ]
+          },
           credentials: [
             {
               id: 1,
@@ -283,6 +456,61 @@ export const ProfessionalProfile = () => {
               <TherapiesSelect
                 selectedTherapies={profileData.therapies}
                 onChange={(therapies) => updateProfileField('therapies', therapies)}
+                isEditing={isEditing}
+              />
+            </Card>
+
+            {/* Vídeo de Presentación */}
+            <Card>
+              <VideoPresentation
+                videoData={profileData.videoPresentation}
+                onChange={(videoPresentation) => updateProfileField('videoPresentation', videoPresentation)}
+                isEditing={isEditing}
+              />
+            </Card>
+
+            {/* Enlaces Externos */}
+            <Card>
+              <ExternalLinks
+                links={profileData.externalLinks}
+                onChange={(externalLinks) => updateProfileField('externalLinks', externalLinks)}
+                isEditing={isEditing}
+              />
+            </Card>
+
+            {/* Testimonios Destacados */}
+            <Card>
+              <FeaturedTestimonials
+                selectedTestimonials={profileData.featuredTestimonials}
+                onChange={(featuredTestimonials) => updateProfileField('featuredTestimonials', featuredTestimonials)}
+                isEditing={isEditing}
+              />
+            </Card>
+
+            {/* Experiencia Laboral */}
+            <Card>
+              <WorkExperience
+                experiences={profileData.workExperience}
+                onChange={(workExperience) => updateProfileField('workExperience', workExperience)}
+                isEditing={isEditing}
+              />
+            </Card>
+
+            {/* Paquetes y Cupones */}
+            <Card>
+              <PricingPackages
+                packages={profileData.pricingPackages.packages}
+                coupons={profileData.pricingPackages.coupons}
+                onChange={(pricingData) => updateProfileField('pricingPackages', pricingData)}
+                isEditing={isEditing}
+              />
+            </Card>
+
+            {/* Ubicaciones de Trabajo */}
+            <Card>
+              <WorkLocationsManager
+                locations={profileData.workLocations}
+                onChange={(workLocations) => updateProfileField('workLocations', workLocations)}
                 isEditing={isEditing}
               />
             </Card>

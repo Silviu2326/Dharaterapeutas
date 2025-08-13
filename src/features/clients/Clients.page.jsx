@@ -351,6 +351,11 @@ export const Clients = () => {
     setIsDeleteDialogOpen(true);
   };
   
+  const handleChatClient = (client) => {
+    // Navegar al chat con el cliente
+    navigate(`/chat?clientId=${client.id}`);
+  };
+  
   const handleCreateBooking = async (bookingData) => {
     console.log('Creating booking:', bookingData);
     // Aquí se implementaría la lógica para crear la cita
@@ -520,11 +525,12 @@ export const Clients = () => {
           onSort={handleSort}
           onSelectClient={handleSelectClient}
           onSelectAll={handleSelectAllClients}
-          onViewClient={handleViewClient}
+          onClientClick={handleViewClient}
           onViewClientDrawer={handleViewClientDrawer}
-          onNewBooking={handleNewBooking}
-          onUploadDoc={handleUploadDoc}
-          onDeleteClient={handleDeleteClient}
+          onChatClick={handleChatClient}
+          onNewBookingClick={handleNewBooking}
+          onUploadDocClick={handleUploadDoc}
+          onDeleteClick={handleDeleteClient}
         />
       </Card>
       

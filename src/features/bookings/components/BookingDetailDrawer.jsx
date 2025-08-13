@@ -187,6 +187,7 @@ export const BookingDetailDrawer = ({
   onStartChat,
   onJoinMeet,
   onMarkCompleted,
+  onGenerateJustificante,
   onEditNotes,
   onViewClient,
   onViewSession
@@ -449,6 +450,16 @@ export const BookingDetailDrawer = ({
                   label="Marcar como completada"
                   onClick={() => onMarkCompleted && onMarkCompleted(booking)}
                   variant="primary"
+                  fullWidth
+                />
+              )}
+              
+              {booking.status === 'completed' && (
+                <ActionButton
+                  icon={FileText}
+                  label="Generar Justificante"
+                  onClick={() => onGenerateJustificante && onGenerateJustificante(booking)}
+                  variant="outline"
                   fullWidth
                 />
               )}

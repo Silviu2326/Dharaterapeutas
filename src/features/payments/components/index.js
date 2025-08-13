@@ -7,5 +7,6 @@ export { PaymentsFilter } from './PaymentsFilter';
 export { PaymentRow, PaymentCard } from './PaymentRow';
 export { PaymentsTable } from './PaymentsTable';
 export { PaymentDetailModal } from './PaymentDetailModal';
+export { CreatePaymentModal } from './CreatePaymentModal';
 export { PayoutPanel } from './PayoutPanel';
 export { ExportButtons } from './ExportButtons';

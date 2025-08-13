@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
+  
   User, 
   Shield, 
   CreditCard, 
@@ -15,7 +16,8 @@ import {
   Bell, 
   Puzzle, 
   HelpCircle, 
-  Settings 
+  Settings, 
+  EuroIcon
 } from 'lucide-react';
 import { useAppStore } from '../app/store';
 
@@ -30,7 +32,7 @@ const menuItems = [
   { name: 'Chat', path: '/chat', icon: MessageCircle },
   { name: 'Documentos y Materiales', path: '/documentos-materiales', icon: FileText },
   { name: 'Reseñas', path: '/reseñas', icon: Star },
-  { name: 'Pagos', path: '/pagos', icon: DollarSign },
+  { name: 'Cobros', path: '/pagos', icon: EuroIcon },
   { name: 'Notificaciones', path: '/notificaciones', icon: Bell },
   { name: 'Integraciones', path: '/integraciones', icon: Puzzle },
   { name: 'Centro de Ayuda', path: '/centro-ayuda', icon: HelpCircle },

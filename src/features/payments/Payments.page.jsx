@@ -5,6 +5,7 @@ import {
   PaymentsFilter,
   PaymentsTable,
   PaymentDetailModal,
+  CreatePaymentModal,
   PayoutPanel,
   ExportButtons
 } from './components';
@@ -16,7 +17,8 @@ import {
   requestPayout,
   refundPayment,
   downloadInvoice,
-  exportPayments
+  exportPayments,
+  createPayment
 } from './payments.api';
 
 export const Payments = () => {
@@ -36,6 +38,7 @@ export const Payments = () => {
   
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
 
@@ -129,6 +132,19 @@ export const Payments = () => {
     }
   });
 
+  const createPaymentMutation = useMutation({
+    mutationFn: createPayment,
+    onSuccess: (data) => {
+      showToast(data.message, 'success');
+      queryClient.invalidateQueries(['payments']);
+      queryClient.invalidateQueries(['payment-stats']);
+      setShowCreateModal(false);
+    },
+    onError: (error) => {
+      showToast(error.message || 'Error al crear el cobro', 'error');
+    }
+  });
+
   // Event handlers
   const handleFiltersChange = (newFilters) => {
     setFilters({ ...newFilters, page: 1 }); // Reset page when filters change
@@ -166,6 +182,10 @@ export const Payments = () => {
     exportMutation.mutate({ filters, format: 'pdf' });
   };
 
+  const handleCreatePayment = (paymentData) => {
+    createPaymentMutation.mutate(paymentData);
+  };
+
   // Loading state
   if (statsLoading && payoutLoading && paymentsLoading) {
     return (
@@ -200,9 +220,18 @@ export const Payments = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-deep">Pagos</h1>
-          <p className="text-gray-600 mt-1">Gestión de pagos, ingresos y transferencias</p>
+          <h1 className="text-3xl font-bold text-deep">Cobros</h1>
+          <p className="text-gray-600 mt-1">Gestión de Cobros, ingresos y transferencias</p>
         </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Crear Cobro
+        </button>
       </div>
 
       {/* KPI Cards */}
@@ -277,6 +306,13 @@ export const Payments = () => {
         onClose={() => setShowDetailModal(false)}
         onDownloadInvoice={handleDownloadInvoice}
         onRefund={handleRefund}
+      />
+
+      {/* Create Payment Modal */}
+      <CreatePaymentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreatePayment}
       />
 
       {/* Toast Notifications */}

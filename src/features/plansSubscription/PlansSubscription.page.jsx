@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
-import { Plus, Search, Filter, Users, Calendar, Target } from 'lucide-react';
+import { Plus, Search, Filter, Users, Calendar, Target, BookOpen, TrendingUp, UserCheck, Bell } from 'lucide-react';
 import { CreatePlanModal } from './components/CreatePlanModal';
 import { PlanCard } from './components/PlanCard';
 import { AssignPlanModal } from './components/AssignPlanModal';
 import { PlanDetailsModal } from './components/PlanDetailsModal';
 import { BookingIntegrationModal } from './components/BookingIntegrationModal';
+import { TemplateLibrary } from './components/TemplateLibrary';
+import { ProgressTracker } from './components/ProgressTracker';
+import { BulkAssignment } from './components/BulkAssignment';
+import { AutomaticReminders } from './components/AutomaticReminders';
 
 export const PlansSubscription = () => {
   const [loading, setLoading] = useState(true);
@@ -17,13 +21,18 @@ export const PlansSubscription = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
+  const [showProgressTracker, setShowProgressTracker] = useState(false);
+  const [showBulkAssignment, setShowBulkAssignment] = useState(false);
+  const [showReminders, setShowReminders] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [editingPlan, setEditingPlan] = useState(null);
-  const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedPlanForBooking, setSelectedPlanForBooking] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [activeTab, setActiveTab] = useState('plans');
 
   // Mock data - Planes terapéuticos
   const mockPlans = [
@@ -369,19 +378,95 @@ export const PlansSubscription = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Target className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Planes</p>
-              <p className="text-2xl font-bold text-gray-900">{plans.length}</p>
-            </div>
-          </div>
-        </Card>
+      {/* Navegación por pestañas */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('plans')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'plans'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Mis Planes
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('templates')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'templates'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                Biblioteca de Plantillas
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('progress')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'progress'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Seguimiento de Progreso
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('bulk')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'bulk'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <UserCheck className="w-4 h-4" />
+                Asignación Masiva
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('reminders')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'reminders'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4" />
+                Recordatorios Automáticos
+              </div>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {/* Contenido según la pestaña activa */}
+      {activeTab === 'plans' && (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card className="p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Target className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Planes</p>
+                  <p className="text-2xl font-bold text-gray-900">{plans.length}</p>
+                </div>
+              </div>
+            </Card>
         
         <Card className="p-6">
           <div className="flex items-center">
@@ -470,42 +555,60 @@ export const PlansSubscription = () => {
         </div>
       </Card>
 
-      {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {filteredPlans.map(plan => (
-          <PlanCard
-            key={plan.id}
-            plan={plan}
-            onView={() => handleViewPlanDetails(plan)}
-            onEdit={() => handleEditPlanOpen(plan)}
-            onClone={() => handleClonePlan(plan)}
-            onDelete={() => handleDeletePlan(plan.id)}
-            onAssign={() => {
-              setSelectedPlan(plan);
-              setShowAssignModal(true);
-            }}
-            onActivate={() => handleActivatePlan(plan.id)}
-            onScheduleSessions={() => handleScheduleSessions(plan)}
-          />
-        ))}
-      </div>
+          {/* Plans Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {filteredPlans.map(plan => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                onView={() => handleViewPlanDetails(plan)}
+                onEdit={() => handleEditPlanOpen(plan)}
+                onClone={() => handleClonePlan(plan)}
+                onDelete={() => handleDeletePlan(plan.id)}
+                onAssign={() => {
+                  setSelectedPlan(plan);
+                  setShowAssignModal(true);
+                }}
+                onActivate={() => handleActivatePlan(plan.id)}
+                onScheduleSessions={() => handleScheduleSessions(plan)}
+              />
+            ))}
+          </div>
 
-      {filteredPlans.length === 0 && (
-        <Card className="p-12 text-center">
-          <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron planes</h3>
-          <p className="text-gray-600 mb-6">
-            {searchTerm || filterStatus !== 'all' || filterType !== 'all'
-              ? 'Intenta ajustar los filtros de búsqueda'
-              : 'Comienza creando tu primer plan terapéutico'}
-          </p>
-          {!searchTerm && filterStatus === 'all' && filterType === 'all' && (
-            <Button onClick={() => setShowCreateModal(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Crear Primer Plan
-            </Button>
+          {filteredPlans.length === 0 && (
+            <Card className="p-12 text-center">
+              <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron planes</h3>
+              <p className="text-gray-600 mb-6">
+                {searchTerm || filterStatus !== 'all' || filterType !== 'all'
+                  ? 'Intenta ajustar los filtros de búsqueda'
+                  : 'Comienza creando tu primer plan terapéutico'}
+              </p>
+              {!searchTerm && filterStatus === 'all' && filterType === 'all' && (
+                <Button onClick={() => setShowCreateModal(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Primer Plan
+                </Button>
+              )}
+            </Card>
           )}
-        </Card>
+        </>
+      )}
+
+      {activeTab === 'templates' && (
+        <TemplateLibrary />
+      )}
+
+      {activeTab === 'progress' && (
+        <ProgressTracker plans={plans} clients={clients} />
+      )}
+
+      {activeTab === 'bulk' && (
+        <BulkAssignment plans={plans} clients={clients} onAssign={handleAssignPlan} />
+      )}
+
+      {activeTab === 'reminders' && (
+        <AutomaticReminders plans={plans} clients={clients} />
       )}
 
       {/* Modals */}

@@ -8,6 +8,7 @@ import { CancelModal } from './components/CancelModal';
 import { NewBookingModal } from './components/NewBookingModal';
 import { NotificationSystem } from './components/NotificationSystem';
 import { StatusBadge } from './components/StatusBadge';
+import JustificanteModal from './components/JustificanteModal';
 import { 
   Calendar,
   Clock,
@@ -15,7 +16,8 @@ import {
   TrendingUp,
   Filter,
   Download,
-  Plus
+  Plus,
+  FileText
 } from 'lucide-react';
 
 // Mock data for demonstration - Updated with current dates
@@ -178,6 +180,8 @@ export const Bookings = () => {
   const [bookingToReschedule, setBookingToReschedule] = useState(null);
   const [bookingToCancel, setBookingToCancel] = useState(null);
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
+  const [isJustificanteModalOpen, setIsJustificanteModalOpen] = useState(false);
+  const [bookingForJustificante, setBookingForJustificante] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState('desktop'); // desktop | mobile
   const [currentPage, setCurrentPage] = useState(1);
@@ -358,6 +362,12 @@ export const Bookings = () => {
     if (booking.meetingLink) {
       window.open(booking.meetingLink, '_blank');
     }
+  };
+
+  const handleGenerateJustificante = (booking) => {
+    setBookingForJustificante(booking);
+    setIsJustificanteModalOpen(true);
+    setIsDetailDrawerOpen(false);
   };
 
   const handleMarkCompleted = async (booking) => {
@@ -717,6 +727,7 @@ export const Bookings = () => {
         onStartChat={handleStartChat}
         onJoinMeet={handleJoinMeet}
         onMarkCompleted={handleMarkCompleted}
+        onGenerateJustificante={handleGenerateJustificante}
         onEditNotes={(booking) => console.log('Edit notes for:', booking.id)}
         onViewClient={(clientId) => console.log('View client:', clientId)}
         onViewSession={(sessionDoc) => console.log('View session:', sessionDoc)}
@@ -754,6 +765,16 @@ export const Bookings = () => {
         onConfirm={handleConfirmNewBooking}
         availableSlots={mockAvailableSlots}
         isLoading={isLoading}
+      />
+
+      {/* Justificante Modal */}
+      <JustificanteModal
+        booking={bookingForJustificante}
+        isOpen={isJustificanteModalOpen}
+        onClose={() => {
+          setIsJustificanteModalOpen(false);
+          setBookingForJustificante(null);
+        }}
       />
     </div>
   );
